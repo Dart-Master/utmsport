@@ -113,32 +113,38 @@ class HomePage extends StatelessWidget {
                     ),
                   ],
                 ),
-                Row(
-                  children: [
-                    TextButton(
-                      onPressed: () {},
-                      child: const Text(
-                        'Reservation Record',
-                        style: TextStyle(color: Colors.blue),
-                      ),
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.5,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        TextButton(
+                          onPressed: () {},
+                          child: const Text(
+                            'Reservation Record',
+                            style: TextStyle(color: Colors.blue),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        TextButton(
+                          onPressed: () {},
+                          child: Text(
+                            'Reservations',
+                            style: TextStyle(color: Colors.grey[600]),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        TextButton(
+                          onPressed: () {},
+                          child: Text(
+                            'Cancelled',
+                            style: TextStyle(color: Colors.grey[600]),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    TextButton(
-                      onPressed: () {},
-                      child: Text(
-                        'Reservations',
-                        style: TextStyle(color: Colors.grey[600]),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    TextButton(
-                      onPressed: () {},
-                      child: Text(
-                        'Cancelled',
-                        style: TextStyle(color: Colors.grey[600]),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ],
             ),
