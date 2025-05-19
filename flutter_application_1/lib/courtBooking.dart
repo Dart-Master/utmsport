@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 class SportsCourtBooking extends StatefulWidget {
+  const SportsCourtBooking({super.key});
+
   @override
-  _SportsCourtBookingState createState() => _SportsCourtBookingState();
+  State<SportsCourtBooking> createState() => _SportsCourtBookingState();
 }
 
 class _SportsCourtBookingState extends State<SportsCourtBooking> {
@@ -16,56 +18,41 @@ class _SportsCourtBookingState extends State<SportsCourtBooking> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Reservation'),
+        title: const Text('Reservation'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Select Sport:',
-              style: TextStyle(fontSize: 18),
-            ),
-            SizedBox(height: 10),
+            const Text('Select Sport:', style: TextStyle(fontSize: 18)),
+            const SizedBox(height: 10),
             _buildSportSelector(),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Text(
-              '${_selectedSport} Court',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              '$_selectedSport Court',
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 20),
-            Text(
-              'Select a date:',
-              style: TextStyle(fontSize: 18),
-            ),
-            SizedBox(height: 10),
+            const SizedBox(height: 20),
+            const Text('Select a date:', style: TextStyle(fontSize: 18)),
+            const SizedBox(height: 10),
             _buildCalendar(),
-            SizedBox(height: 20),
-            Text(
-              'Select a period:',
-              style: TextStyle(fontSize: 18),
-            ),
-            SizedBox(height: 10),
+            const SizedBox(height: 20),
+            const Text('Select a period:', style: TextStyle(fontSize: 18)),
+            const SizedBox(height: 10),
             _buildTimeSlots(),
-            SizedBox(height: 20),
-            Text(
-              'PAX:',
-              style: TextStyle(fontSize: 18),
-            ),
-            SizedBox(height: 10),
+            const SizedBox(height: 20),
+            const Text('PAX:', style: TextStyle(fontSize: 18)),
+            const SizedBox(height: 10),
             _buildPaxSelector(),
-            Spacer(),
+            const Spacer(),
             Center(
               child: ElevatedButton(
                 onPressed: _selectedTimeSlot == null ? null : _bookCourt,
                 style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
                 ),
-                child: Text(
-                  'Book',
-                  style: TextStyle(fontSize: 18),
-                ),
+                child: const Text('Book', style: TextStyle(fontSize: 18)),
               ),
             ),
           ],
@@ -86,10 +73,10 @@ class _SportsCourtBookingState extends State<SportsCourtBooking> {
       onChanged: (String? newValue) {
         setState(() {
           _selectedSport = newValue!;
-          _selectedTimeSlot = null; // Reset time slot when sport changes
+          _selectedTimeSlot = null;
         });
       },
-      decoration: InputDecoration(
+      decoration: const InputDecoration(
         border: OutlineInputBorder(),
         contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       ),
@@ -108,23 +95,23 @@ class _SportsCourtBookingState extends State<SportsCourtBooking> {
               children: [
                 Text(
                   '${_getMonthName(_selectedDate.month)} ${_selectedDate.year}',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 Row(
                   children: [
                     IconButton(
-                      icon: Icon(Icons.chevron_left),
+                      icon: const Icon(Icons.chevron_left),
                       onPressed: () => _changeMonth(-1),
                     ),
                     IconButton(
-                      icon: Icon(Icons.chevron_right),
+                      icon: const Icon(Icons.chevron_right),
                       onPressed: () => _changeMonth(1),
                     ),
                   ],
                 ),
               ],
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             _buildWeekDaysRow(),
             _buildCalendarDays(),
           ],
@@ -136,8 +123,8 @@ class _SportsCourtBookingState extends State<SportsCourtBooking> {
   Widget _buildWeekDaysRow() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: ['Mo', 'Tu', 'We', 'Th', 'Fri', 'Sa', 'Su']
-          .map((day) => Text(day, style: TextStyle(fontWeight: FontWeight.bold)))
+      children: ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
+          .map((day) => Text(day, style: const TextStyle(fontWeight: FontWeight.bold)))
           .toList(),
     );
   }
@@ -148,9 +135,9 @@ class _SportsCourtBookingState extends State<SportsCourtBooking> {
     int daysInMonth = DateTime(_selectedDate.year, _selectedDate.month + 1, 0).day;
 
     List<Widget> dayWidgets = [];
-    
+
     for (int i = 1; i < weekday; i++) {
-      dayWidgets.add(Container(width: 30, height: 30));
+      dayWidgets.add(const SizedBox(width: 30, height: 30));
     }
 
     for (int day = 1; day <= daysInMonth; day++) {
@@ -172,9 +159,7 @@ class _SportsCourtBookingState extends State<SportsCourtBooking> {
             child: Center(
               child: Text(
                 day.toString(),
-                style: TextStyle(
-                  color: isSelected ? Colors.white : Colors.black,
-                ),
+                style: TextStyle(color: isSelected ? Colors.white : Colors.black),
               ),
             ),
           ),
@@ -190,21 +175,21 @@ class _SportsCourtBookingState extends State<SportsCourtBooking> {
   }
 
   Widget _buildTimeSlots() {
-    // Different sports might have different available time slots
     List<String> timeSlots = _getTimeSlotsForSport(_selectedSport);
-    
+
     return Column(
-      children: timeSlots.map((slot) => RadioListTile<String>(
-        title: Text(slot),
-        value: slot,
-        groupValue: _selectedTimeSlot,
-        onChanged: (value) => setState(() => _selectedTimeSlot = value),
-      )).toList(),
+      children: timeSlots.map((slot) {
+        return RadioListTile<String>(
+          title: Text(slot),
+          value: slot,
+          groupValue: _selectedTimeSlot,
+          onChanged: (value) => setState(() => _selectedTimeSlot = value),
+        );
+      }).toList(),
     );
   }
 
   List<String> _getTimeSlotsForSport(String sport) {
-    // Customize time slots based on sport
     switch (sport) {
       case 'Badminton':
         return ['9:00 - 11:00', '11:00 - 13:00', '14:00 - 16:00', '16:00 - 18:00'];
@@ -222,20 +207,15 @@ class _SportsCourtBookingState extends State<SportsCourtBooking> {
   Widget _buildPaxSelector() {
     return Row(
       children: [
-        Text(
-          '$_paxCount',
-          style: TextStyle(fontSize: 18),
-        ),
-        SizedBox(width: 20),
+        Text('$_paxCount', style: const TextStyle(fontSize: 18)),
+        const SizedBox(width: 20),
         IconButton(
-          icon: Icon(Icons.add),
+          icon: const Icon(Icons.add),
           onPressed: () => setState(() => _paxCount++),
         ),
         IconButton(
-          icon: Icon(Icons.remove),
-          onPressed: _paxCount > 1
-              ? () => setState(() => _paxCount--)
-              : null,
+          icon: const Icon(Icons.remove),
+          onPressed: _paxCount > 1 ? () => setState(() => _paxCount--) : null,
         ),
       ],
     );
@@ -251,15 +231,16 @@ class _SportsCourtBookingState extends State<SportsCourtBooking> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Booking Confirmation'),
+        title: const Text('Booking Confirmation'),
         content: Text(
-          'You have booked the $_selectedSport court on ${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year} '
+          'You have booked the $_selectedSport court on '
+          '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year} '
           'from $_selectedTimeSlot for $_paxCount people.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('OK'),
+            child: const Text('OK'),
           ),
         ],
       ),
@@ -277,4 +258,12 @@ class _SportsCourtBookingState extends State<SportsCourtBooking> {
   bool _isSameDay(DateTime a, DateTime b) {
     return a.year == b.year && a.month == b.month && a.day == b.day;
   }
+}
+
+// ✅ Add this main() at the bottom:
+void main() {
+  runApp(const MaterialApp(
+    debugShowCheckedModeBanner: false,
+    home: SportsCourtBooking(),
+  ));
 }
