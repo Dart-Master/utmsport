@@ -1,0 +1,2 @@
+C:/Users/aqilh/OneDrive/Documents/GitHub/utmsport/flutter_application_1/android/app/.cxx/Debug/6c3c3u4y/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/Users/aqilh/OneDrive/Documents/GitHub/utmsport/flutter_application_1/android/app/.cxx/Debug/6c3c3u4y/armeabi-v7a/CMakeFiles/rebuild_cache.dir
