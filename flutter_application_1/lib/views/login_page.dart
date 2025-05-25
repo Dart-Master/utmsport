@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../viewmodels/login_viewmodel.dart';
 import '../views/student_page.dart';
+import 'admin_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -31,18 +32,25 @@ class _LoginPageState extends State<LoginPage> {
         _errorMessage = null;
       });
 
-      final success = await _viewModel.login(
+      final user = await _viewModel.login(
         _emailController.text,
         _passwordController.text,
       );
 
       if (mounted) {
         setState(() => _isLoading = false);
-        if (success) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const StudentPage()),
-          );
+        if (user != null) {
+          if (user.role == "student") {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const StudentPage()),
+            );
+          } else if (user.role == "admin") {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const AdminDashboard()),
+            );
+          }
         } else {
           setState(() => _errorMessage = "Invalid email or password");
         }
