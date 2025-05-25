@@ -11,7 +11,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Search Bar with Buttons and Image Ads',
-      home: SearchPage(),
+      home: const AdminDashboard(),
       routes: {
         '/page1': (context) => const Page1(),
         '/page2': (context) => const Page2(),
@@ -21,7 +21,9 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class SearchPage extends StatelessWidget {
+class AdminDashboard extends StatelessWidget {
+  const AdminDashboard({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -94,7 +96,8 @@ class SearchPage extends StatelessWidget {
               const SizedBox(height: 12),
               _buildImageAdBoardAsset('assets/images/ADS.png'),
               const SizedBox(height: 16),
-              _buildImageAdBoardNetwork('https://picsum.photos/600/200?grayscale'),
+              _buildImageAdBoardNetwork(
+                  'https://picsum.photos/600/200?grayscale'),
               const SizedBox(height: 24),
             ],
           ),
@@ -123,7 +126,8 @@ class SearchPage extends StatelessWidget {
           color: color,
           borderRadius: BorderRadius.circular(12),
           boxShadow: const [
-            BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(2, 2)),
+            BoxShadow(
+                color: Colors.black26, blurRadius: 4, offset: Offset(2, 2)),
           ],
         ),
         alignment: Alignment.center,
@@ -164,7 +168,8 @@ class SearchPage extends StatelessWidget {
         decoration: BoxDecoration(
           border: Border.all(color: Colors.orange, width: 1.5),
           boxShadow: const [
-            BoxShadow(color: Colors.black12, blurRadius: 3, offset: Offset(1, 1)),
+            BoxShadow(
+                color: Colors.black12, blurRadius: 3, offset: Offset(1, 1)),
           ],
         ),
         child: Image.asset(
@@ -186,7 +191,8 @@ class SearchPage extends StatelessWidget {
         decoration: BoxDecoration(
           border: Border.all(color: Colors.orange, width: 1.5),
           boxShadow: const [
-            BoxShadow(color: Colors.black12, blurRadius: 3, offset: Offset(1, 1)),
+            BoxShadow(
+                color: Colors.black12, blurRadius: 3, offset: Offset(1, 1)),
           ],
         ),
         child: Image.network(
