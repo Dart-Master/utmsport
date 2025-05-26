@@ -95,6 +95,7 @@ class AdminDashboard extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               _buildImageAdBoardAsset('assets/images/ADS.png'),
+
               const SizedBox(height: 16),
               _buildImageAdBoardNetwork(
                   'https://picsum.photos/600/200?grayscale'),
@@ -213,7 +214,7 @@ class Page1 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Page 1')),
+      appBar: AppBar(title: const Text('Booking Management')),
       body: const Center(child: Text('Welcome to Page 1')),
     );
   }
@@ -224,7 +225,7 @@ class Page2 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Page 2')),
+      appBar: AppBar(title: const Text('User Account Management')),
       body: const Center(child: Text('Welcome to Page 2')),
     );
   }
@@ -235,7 +236,7 @@ class Page3 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Page 3')),
+      appBar: AppBar(title: const Text('Analytic Dashboard')),
       body: const Center(child: Text('Welcome to Page 3')),
     );
   }
