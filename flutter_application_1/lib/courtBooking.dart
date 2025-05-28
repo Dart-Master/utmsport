@@ -4,7 +4,7 @@ class SportsCourtBooking extends StatefulWidget {
   const SportsCourtBooking({super.key});
 
   @override
-  State<SportsCourtBooking> createState() => _SportsCourtBookingState();
+  State<SportsCourtBooking> dart pub global activate flutterfire_clicreateState() => _SportsCourtBookingState();
 }
 
 class _SportsCourtBookingState extends State<SportsCourtBooking> {
