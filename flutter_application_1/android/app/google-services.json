@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "960584794859",
+    "project_id": "dartmaster-ffc0b",
+    "storage_bucket": "dartmaster-ffc0b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:960584794859:android:dc7b3ffa0a6b4f0ec334ae",
+        "android_client_info": {
+          "package_name": "com.example.flutter_application_1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCYaeSyaBY8jq92eYmhVdgJoPjhU_HLpBo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

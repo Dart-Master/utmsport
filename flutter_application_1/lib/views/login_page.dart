@@ -33,20 +33,21 @@ class _LoginPageState extends State<LoginPage> {
         _errorMessage = null;
       });
 
-      final user = await _viewModel.login(
+      final userData = await _viewModel.login(
         _emailController.text,
         _passwordController.text,
       );
 
       if (mounted) {
         setState(() => _isLoading = false);
-        if (user != null) {
-          if (user.role == "student") {
+        if (userData != null) {
+          final role = userData['role'];
+          if (role == "student") {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => const StudentPage()),
             );
-          } else if (user.role == "admin") {
+          } else if (role == "admin") {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => const AdminDashboard()),
@@ -139,8 +140,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         child: _isLoading
                             ? const CircularProgressIndicator(
-                                valueColor:
-                                    AlwaysStoppedAnimation<Color>(Colors.white),
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                               )
                             : const Text(
                                 'Login',
@@ -159,8 +159,7 @@ class _LoginPageState extends State<LoginPage> {
                 onPressed: () {
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(
-                        builder: (context) => const RegisterPage()),
+                    MaterialPageRoute(builder: (context) => const RegisterPage()),
                   );
                 },
                 child: const Text(
@@ -180,7 +179,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   GestureDetector(
                     onTap: () {
-                      // Handle alternative login method
+                      // Handle alternative login method if needed
                     },
                     child: const Text(
                       'Login',
