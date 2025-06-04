@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'login_page.dart';
+import 'court_booking.dart';
 
 class StudentPage extends StatelessWidget {
   const StudentPage({super.key});
@@ -27,7 +28,6 @@ class StudentPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -44,7 +44,6 @@ class StudentPage extends StatelessWidget {
                   style: TextStyle(
                     color: Colors.black,
                     fontSize: 16,
-                    fontWeight: FontWeight.normal,
                   ),
                 ),
                 const Text(
@@ -57,14 +56,35 @@ class StudentPage extends StatelessWidget {
                 ),
               ],
             ),
+
             const SizedBox(height: 24),
-            // Search Bar
+SizedBox(
+  width: double.infinity,
+  child: ElevatedButton.icon(
+    icon: const Icon(Icons.sports_tennis),
+    label: const Text("Facility Reservation"),
+    style: ElevatedButton.styleFrom(
+      padding: const EdgeInsets.symmetric(vertical: 14),
+      backgroundColor: Colors.blue,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+    ),
+    onPressed: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const SportsCourtBooking()),
+      );
+    },
+  ),
+),
+const SizedBox(height: 24),
+            const SizedBox(height: 24),
             Row(
               children: [
                 Expanded(
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
                       color: Colors.grey[200],
                       borderRadius: BorderRadius.circular(20),
@@ -90,14 +110,13 @@ class StudentPage extends StatelessWidget {
                   child: IconButton(
                     icon: const Icon(Icons.search, color: Colors.white),
                     onPressed: () {
-                      // Add search functionality here
+                      // Search functionality placeholder
                     },
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 24),
-            // Reservation Record Tabs
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -106,17 +125,11 @@ class StudentPage extends StatelessWidget {
                   children: [
                     const Text(
                       '1 FINISHER',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     Text(
                       '4.00%',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                     ),
                   ],
                 ),
@@ -127,7 +140,12 @@ class StudentPage extends StatelessWidget {
                     child: Row(
                       children: [
                         TextButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const SportsCourtBooking()),
+                            );
+                          },
                           child: const Text(
                             'Reservation Record',
                             style: TextStyle(color: Colors.blue),
@@ -156,7 +174,6 @@ class StudentPage extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 24),
-            // Booking Card
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -176,31 +193,21 @@ class StudentPage extends StatelessWidget {
                 children: [
                   const Text(
                     'Badminton Court Indoor',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Facilities - Court 8',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                   ),
                   const SizedBox(height: 16),
                   Row(
                     children: [
-                      const Icon(Icons.calendar_today,
-                          size: 20, color: Colors.grey),
+                      const Icon(Icons.calendar_today, size: 20, color: Colors.grey),
                       const SizedBox(width: 8),
                       Text(
                         '17 Nov 2025, 16:50–18:50',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                       ),
                     ],
                   ),
@@ -209,16 +216,14 @@ class StudentPage extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
                           color: Colors.green[50],
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.check_circle,
-                                size: 16, color: Colors.green),
+                            const Icon(Icons.check_circle, size: 16, color: Colors.green),
                             const SizedBox(width: 4),
                             Text(
                               'To be check in',
