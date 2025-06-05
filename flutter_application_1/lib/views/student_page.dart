@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'login_page.dart';
-import 'court_booking.dart';
+import 'courtBooking.dart'; // Import your booking page
+
 
 class StudentPage extends StatelessWidget {
   const StudentPage({super.key});
@@ -249,6 +250,49 @@ const SizedBox(height: 24),
           ],
         ),
       ),
+      bottomNavigationBar: BottomAppBar(
+        shape: const CircularNotchedRectangle(),
+        notchMargin: 8,
+        child: SizedBox(
+          height: 56,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              // You can add other navigation icons here if needed
+            ],
+          ),
+        ),
+      ),
+      floatingActionButton: Transform.translate(
+        offset: const Offset(0, 20), // Move the button 20 pixels down
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey[200], // Light grey background
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.3),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.all(8), // Space around the FAB
+          child: FloatingActionButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const SportsCourtBooking()),
+              );
+            },
+            child: const Icon(Icons.add),
+            backgroundColor: Colors.blue,
+            tooltip: 'Book a Court',
+          ),
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 }
