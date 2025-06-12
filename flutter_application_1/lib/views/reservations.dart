@@ -78,6 +78,16 @@ class _ReservationCard extends StatefulWidget {
 
 class _ReservationCardState extends State<_ReservationCard> {
   bool _expanded = false;
+  bool _isRescheduling = false;
+  String? _newTimeSlot;
+
+  // Define available time slots for each sport
+  final Map<String, List<String>> _sportTimeSlots = {
+    'Badminton': ['9:00 - 11:00', '11:00 - 13:00', '14:00 - 16:00', '16:00 - 18:00'],
+    'Ping Pong': ['10:00 - 12:00', '12:00 - 14:00', '15:00 - 17:00'],
+    'Volleyball': ['13:00 - 15:00', '16:00 - 18:00', '19:00 - 21:00'],
+    'Squash': ['8:00 - 10:00', '11:00 - 13:00', '15:00 - 17:00'],
+  };
 
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
@@ -103,6 +113,73 @@ class _ReservationCardState extends State<_ReservationCard> {
         SnackBar(content: Text('Failed to update status: $e')),
       );
     }
+  }
+
+  Future<bool> _isTimeSlotAvailable(String timeSlot) async {
+    try {
+      final query = await FirebaseFirestore.instance
+          .collection('bookings')
+          .where('sport', isEqualTo: widget.sport)
+          .where('date', isEqualTo: Timestamp.fromDate(widget.date))
+          .where('timeSlot', isEqualTo: timeSlot)
+          .where('status', whereIn: ['confirmed', 'checked in'])
+          .get();
+
+      return query.docs.isEmpty;
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error checking availability: $e')),
+      );
+      return false;
+    }
+  }
+
+  Future<void> _rescheduleBooking() async {
+    if (_newTimeSlot == null) return;
+
+    final isAvailable = await _isTimeSlotAvailable(_newTimeSlot!);
+    if (!isAvailable) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('This time slot is already taken')),
+      );
+      return;
+    }
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('bookings')
+          .doc(widget.bookingId)
+          .update({
+            'timeSlot': _newTimeSlot,
+            'status': 'rescheduled',
+          });
+
+      setState(() {
+        _isRescheduling = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Rescheduled successfully!')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to reschedule: $e')),
+      );
+    }
+  }
+
+  void _startRescheduling() {
+    setState(() {
+      _isRescheduling = true;
+      _newTimeSlot = widget.timeSlot;
+    });
+  }
+
+  void _cancelRescheduling() {
+    setState(() {
+      _isRescheduling = false;
+      _newTimeSlot = null;
+    });
   }
 
   @override
@@ -151,10 +228,37 @@ class _ReservationCardState extends State<_ReservationCard> {
               style: const TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 4),
-            Text(
-              'Time: ${widget.timeSlot}',
-              style: const TextStyle(fontSize: 16),
-            ),
+            if (!_isRescheduling)
+              Text(
+                'Time: ${widget.timeSlot}',
+                style: const TextStyle(fontSize: 16),
+              ),
+            if (_isRescheduling) ...[
+              const SizedBox(height: 8),
+              const Text(
+                'Select new time slot:',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                value: _newTimeSlot,
+                items: _sportTimeSlots[widget.sport]?.map((slot) {
+                  return DropdownMenuItem<String>(
+                    value: slot,
+                    child: Text(slot),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _newTimeSlot = value;
+                  });
+                },
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                ),
+              ),
+            ],
             const SizedBox(height: 4),
             Text(
               'Pax: ${widget.pax}',
@@ -172,13 +276,13 @@ class _ReservationCardState extends State<_ReservationCard> {
                 style: const TextStyle(fontSize: 14, color: Colors.grey),
               ),
               const SizedBox(height: 12),
-              if (widget.status == 'confirmed')
+              if (widget.status == 'confirmed' && !_isRescheduling)
                 Row(
                   children: [
                     Expanded(
                       child: OutlinedButton(
-                        onPressed: () => _updateStatus('checked in'),
-                        child: const Text('Check In'),
+                        onPressed: _startRescheduling,
+                        child: const Text('Reschedule'),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -194,6 +298,24 @@ class _ReservationCardState extends State<_ReservationCard> {
                     ),
                   ],
                 ),
+              if (_isRescheduling)
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: _rescheduleBooking,
+                        child: const Text('Confirm Reschedule'),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: _cancelRescheduling,
+                        child: const Text('Cancel'),
+                      ),
+                    ),
+                  ],
+                ),
             ],
             Align(
               alignment: Alignment.centerRight,
@@ -201,6 +323,7 @@ class _ReservationCardState extends State<_ReservationCard> {
                 onPressed: () {
                   setState(() {
                     _expanded = !_expanded;
+                    if (!_expanded) _isRescheduling = false;
                   });
                 },
                 child: Text(
