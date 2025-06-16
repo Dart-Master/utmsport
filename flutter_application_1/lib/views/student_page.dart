@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/views/profile.dart';
 import 'package:flutter_application_1/views/reservations.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'login_page.dart';
@@ -313,7 +314,10 @@ class StudentPage extends StatelessWidget {
         IconButton(
           icon: const Icon(Icons.person),
           onPressed: () {
-            // Navigate to Profile
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ProfileView()),
+            );
           },
         ),
       ],
