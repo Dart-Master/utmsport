@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../viewmodels/profile_viewmodel.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
+
 
 class ProfileView extends StatefulWidget {
   const ProfileView({Key? key}) : super(key: key);
@@ -14,6 +16,7 @@ class _ProfileViewState extends State<ProfileView> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _aboutController = TextEditingController();
   final TextEditingController _educationController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
   bool _isEditing = false;
   bool _isLoading = false;
 
@@ -26,36 +29,41 @@ class _ProfileViewState extends State<ProfileView> {
   Future<void> _loadUserData() async {
     setState(() => _isLoading = true);
     await _viewModel.initialize();
-    if (_viewModel.name != null) {
-      _nameController.text = _viewModel.name!;
-    }
-    if (_viewModel.aboutMe != null) {
-      _aboutController.text = _viewModel.aboutMe!;
-    }
-    if (_viewModel.education != null) {
-      _educationController.text = _viewModel.education!;
-    }
+    _nameController.text = _viewModel.name ?? '';
+    _aboutController.text = _viewModel.aboutMe ?? '';
+    _educationController.text = _viewModel.education ?? '';
+    _phoneController.text = _viewModel.phone ?? '';
     setState(() => _isLoading = false);
   }
 
   Future<void> _pickImage(String type) async {
-    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      setState(() => _isLoading = true);
-      try {
-        if (type == 'profile') {
-          await _viewModel.uploadProfileImage(pickedFile.path);
-        } else {
-          await _viewModel.uploadHeaderImage(pickedFile.path);
-        }
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error uploading image: $e')),
-        );
-      }
-      setState(() => _isLoading = false);
-    }
+  // Request permission first
+  if (await Permission.photos.request().isDenied) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Photo permission is required to upload image.')),
+    );
+    return;
   }
+
+  final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+  if (pickedFile != null) {
+    setState(() => _isLoading = true);
+    try {
+      if (type == 'profile') {
+        await _viewModel.uploadProfileImage(pickedFile.path);
+      } else {
+        await _viewModel.uploadHeaderImage(pickedFile.path);
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error uploading image: $e')),
+      );
+    }
+    setState(() => _isLoading = false);
+  }
+}
+
+
 
   Future<void> _saveChanges() async {
     setState(() => _isLoading = true);
@@ -64,6 +72,7 @@ class _ProfileViewState extends State<ProfileView> {
         name: _nameController.text,
         aboutMe: _aboutController.text,
         education: _educationController.text,
+        phone: _phoneController.text,
       );
       setState(() => _isEditing = false);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -160,7 +169,7 @@ class _ProfileViewState extends State<ProfileView> {
                                   right: 0,
                                   child: Container(
                                     decoration: BoxDecoration(
-                                      color: const Color.fromARGB(255, 114, 0, 0),
+                                      color: Colors.red,
                                       borderRadius: BorderRadius.circular(20),
                                     ),
                                     child: IconButton(
@@ -214,6 +223,19 @@ class _ProfileViewState extends State<ProfileView> {
                             : Text(_viewModel.aboutMe ?? 'No description set'),
                         const SizedBox(height: 20),
                         const Text(
+                          'Phone Number',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 8),
+                        _isEditing
+                            ? TextField(
+                                controller: _phoneController,
+                                keyboardType: TextInputType.phone,
+                                decoration: const InputDecoration(labelText: 'Phone Number'),
+                              )
+                            : Text(_viewModel.phone ?? 'No phone number set'),
+                        const SizedBox(height: 20),
+                        const Text(
                           'Education',
                           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         ),
@@ -224,28 +246,6 @@ class _ProfileViewState extends State<ProfileView> {
                                 decoration: const InputDecoration(labelText: 'Education'),
                               )
                             : Text(_viewModel.education ?? 'No education set'),
-                        const SizedBox(height: 20),
-                        const Text(
-                          'Social',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.link),
-                              onPressed: _viewModel.linkedInUrl != null
-                                  ? () => _viewModel.launchUrl(_viewModel.linkedInUrl!)
-                                  : null,
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.link),
-                              onPressed: _viewModel.githubUrl != null
-                                  ? () => _viewModel.launchUrl(_viewModel.githubUrl!)
-                                  : null,
-                            ),
-                          ],
-                        ),
                         if (_isEditing) ...[
                           const SizedBox(height: 30),
                           SizedBox(
@@ -270,6 +270,7 @@ class _ProfileViewState extends State<ProfileView> {
     _nameController.dispose();
     _aboutController.dispose();
     _educationController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 }
