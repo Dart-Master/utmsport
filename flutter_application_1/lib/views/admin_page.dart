@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'user_account_management.dart';
 
 void main() {
   runApp(const MyApp());
@@ -15,8 +14,7 @@ class MyApp extends StatelessWidget {
       home: const AdminDashboard(),
       routes: {
         '/page1': (context) => const Page1(),
-        '/page2': (context) =>
-            const UserAccountManagementPage(), // <-- Update here
+        '/page2': (context) => const Page2(),
         '/page3': (context) => const Page3(),
       },
     );
@@ -97,6 +95,7 @@ class AdminDashboard extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               _buildImageAdBoardAsset('assets/images/ADS.png'),
+
               const SizedBox(height: 16),
               _buildImageAdBoardNetwork(
                   'https://picsum.photos/600/200?grayscale'),
@@ -119,16 +118,7 @@ class AdminDashboard extends StatelessWidget {
   }) {
     return GestureDetector(
       onTap: () {
-        if (route == '/page2') {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const UserAccountManagementPage(),
-            ),
-          );
-        } else {
-          Navigator.pushNamed(context, route);
-        }
+        Navigator.pushNamed(context, route);
       },
       child: Container(
         width: width,
@@ -226,6 +216,17 @@ class Page1 extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Booking Management')),
       body: const Center(child: Text('Welcome to Page 1')),
+    );
+  }
+}
+
+class Page2 extends StatelessWidget {
+  const Page2({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('User Account Management')),
+      body: const Center(child: Text('Welcome to Page 2')),
     );
   }
 }

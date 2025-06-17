@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import '../viewmodels/profile_viewmodel.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:permission_handler/permission_handler.dart';
-
 
 class ProfileView extends StatefulWidget {
   const ProfileView({Key? key}) : super(key: key);
@@ -37,33 +35,24 @@ class _ProfileViewState extends State<ProfileView> {
   }
 
   Future<void> _pickImage(String type) async {
-  // Request permission first
-  if (await Permission.photos.request().isDenied) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Photo permission is required to upload image.')),
-    );
-    return;
-  }
-
-  final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
-  if (pickedFile != null) {
-    setState(() => _isLoading = true);
-    try {
-      if (type == 'profile') {
-        await _viewModel.uploadProfileImage(pickedFile.path);
-      } else {
-        await _viewModel.uploadHeaderImage(pickedFile.path);
+    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() => _isLoading = true);
+      try {
+        if (type == 'profile') {
+          await _viewModel.uploadProfileImage(pickedFile.path);
+        } else {
+          await _viewModel.uploadHeaderImage(pickedFile.path);
+        }
+        await _loadUserData();
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error uploading image: $e')),
+        );
       }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error uploading image: $e')),
-      );
+      setState(() => _isLoading = false);
     }
-    setState(() => _isLoading = false);
   }
-}
-
-
 
   Future<void> _saveChanges() async {
     setState(() => _isLoading = true);
@@ -107,39 +96,42 @@ class _ProfileViewState extends State<ProfileView> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : Stack(
-              children: [
-                // Header Image
-                Container(
-                  height: 200,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    image: _viewModel.headerImageUrl != null
-                        ? DecorationImage(
-                            image: NetworkImage(_viewModel.headerImageUrl!),
-                            fit: BoxFit.cover,
-                          )
-                        : null,
-                    color: Colors.grey[300],
-                  ),
-                  child: _isEditing
-                      ? Align(
-                          alignment: Alignment.bottomRight,
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: ElevatedButton.icon(
-                              icon: const Icon(Icons.edit, size: 16),
-                              label: const Text('Edit Header'),
-                              onPressed: () => _pickImage('header'),
-                            ),
+          : SingleChildScrollView(
+              child: Column(
+                children: [
+                  // Header Image
+                  Stack(
+                    alignment: Alignment.bottomCenter,
+                    children: [
+                      Container(
+                        height: 200,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          image: _viewModel.headerImageUrl != null
+                              ? DecorationImage(
+                                  image: NetworkImage(_viewModel.headerImageUrl!),
+                                  fit: BoxFit.cover,
+                                )
+                              : null,
+                          color: Colors.grey[300],
+                        ),
+                      ),
+                      if (_isEditing)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: ElevatedButton.icon(
+                            icon: const Icon(Icons.edit, size: 16),
+                            label: const Text('Edit Header'),
+                            onPressed: () => _pickImage('header'),
                           ),
-                        )
-                      : null,
-                ),
-                SingleChildScrollView(
-                  padding: const EdgeInsets.only(top: 180),
-                  child: Container(
-                    padding: const EdgeInsets.all(16.0),
+                        ),
+                    ],
+                  ),
+
+                  // Profile Info
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: Theme.of(context).scaffoldBackgroundColor,
                       borderRadius: const BorderRadius.only(
@@ -150,7 +142,7 @@ class _ProfileViewState extends State<ProfileView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Profile Picture
+                        const SizedBox(height: 10),
                         Center(
                           child: Stack(
                             children: [
@@ -190,10 +182,7 @@ class _ProfileViewState extends State<ProfileView> {
                             : Center(
                                 child: Text(
                                   _viewModel.name ?? 'No name set',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .headlineMedium
-                                      ?.copyWith(
+                                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                                         fontSize: 24,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -209,6 +198,8 @@ class _ProfileViewState extends State<ProfileView> {
                           ),
                         ),
                         const SizedBox(height: 30),
+
+                        // About Me
                         const Text(
                           'About me',
                           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -222,6 +213,8 @@ class _ProfileViewState extends State<ProfileView> {
                               )
                             : Text(_viewModel.aboutMe ?? 'No description set'),
                         const SizedBox(height: 20),
+
+                        // Phone
                         const Text(
                           'Phone Number',
                           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -235,6 +228,8 @@ class _ProfileViewState extends State<ProfileView> {
                               )
                             : Text(_viewModel.phone ?? 'No phone number set'),
                         const SizedBox(height: 20),
+
+                        // Education
                         const Text(
                           'Education',
                           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -246,6 +241,7 @@ class _ProfileViewState extends State<ProfileView> {
                                 decoration: const InputDecoration(labelText: 'Education'),
                               )
                             : Text(_viewModel.education ?? 'No education set'),
+
                         if (_isEditing) ...[
                           const SizedBox(height: 30),
                           SizedBox(
@@ -259,8 +255,8 @@ class _ProfileViewState extends State<ProfileView> {
                       ],
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
     );
   }
