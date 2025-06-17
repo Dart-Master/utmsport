@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'user_account_management.dart';
+import 'analytic_dashboard.dart'; // Add this import
+import 'booking_management.dart';
 
 void main() {
   runApp(const MyApp());
@@ -14,10 +16,9 @@ class MyApp extends StatelessWidget {
       title: 'Search Bar with Buttons and Image Ads',
       home: const AdminDashboard(),
       routes: {
-        '/page1': (context) => const Page1(),
-        '/page2': (context) =>
-            const UserAccountManagementPage(), // <-- Update here
-        '/page3': (context) => const Page3(),
+        '/page1': (context) => const BookingManagementPage(),
+        '/page2': (context) => const UserAccountManagementPage(),
+        '/page3': (context) => const AnalyticDashboardPage(), // This should now work
       },
     );
   }
@@ -126,6 +127,14 @@ class AdminDashboard extends StatelessWidget {
               builder: (context) => const UserAccountManagementPage(),
             ),
           );
+        } else if (route == '/page3') {
+          // Add explicit navigation for page3 as well
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AnalyticDashboardPage(),
+            ),
+          );
         } else {
           Navigator.pushNamed(context, route);
         }
@@ -217,26 +226,8 @@ class AdminDashboard extends StatelessWidget {
   }
 }
 
-// Dummy pages to navigate to:
 
-class Page1 extends StatelessWidget {
-  const Page1({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Booking Management')),
-      body: const Center(child: Text('Welcome to Page 1')),
-    );
-  }
-}
 
-class Page3 extends StatelessWidget {
-  const Page3({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Analytic Dashboard')),
-      body: const Center(child: Text('Welcome to Page 3')),
-    );
-  }
-}
+
+
+// Remove the dummy Page3 class since we're using AnalyticDashboardPage from analytic_dashboard.dart
