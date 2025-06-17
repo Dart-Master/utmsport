@@ -21,9 +21,7 @@ class _SportsCourtBookingState extends State<SportsCourtBooking> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Reservation'),
-      ),
+      appBar: AppBar(title: const Text('Reservation')),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
@@ -36,10 +34,10 @@ class _SportsCourtBookingState extends State<SportsCourtBooking> {
               const SizedBox(height: 20),
               ValueListenableBuilder<String>(
                 valueListenable: viewModel.selectedSport,
-                builder: (context, sport, _) {
-                  return Text('$sport Court',
-                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold));
-                },
+                builder: (context, sport, _) => Text(
+                  '$sport Court',
+                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
               ),
               const SizedBox(height: 20),
               const Text('Select a date:', style: TextStyle(fontSize: 18)),
@@ -50,6 +48,10 @@ class _SportsCourtBookingState extends State<SportsCourtBooking> {
               const SizedBox(height: 10),
               _buildTimeSlots(),
               const SizedBox(height: 20),
+              const Text('Select Court:', style: TextStyle(fontSize: 18)),
+              const SizedBox(height: 10),
+              _buildCourtSelector(),
+              const SizedBox(height: 20),
               const Text('PAX:', style: TextStyle(fontSize: 18)),
               const SizedBox(height: 10),
               _buildPaxSelector(),
@@ -59,8 +61,8 @@ class _SportsCourtBookingState extends State<SportsCourtBooking> {
                   valueListenable: viewModel.selectedTimeSlot,
                   builder: (context, timeSlot, _) {
                     return ElevatedButton(
-                      onPressed: (timeSlot == null || _isBooking) 
-                          ? null 
+                      onPressed: (timeSlot == null || _isBooking)
+                          ? null
                           : () => _bookCourt(context),
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
@@ -94,6 +96,7 @@ class _SportsCourtBookingState extends State<SportsCourtBooking> {
           onChanged: (value) {
             viewModel.selectedSport.value = value!;
             viewModel.selectedTimeSlot.value = null;
+            viewModel.selectedCourt.value = null;
           },
           decoration: const InputDecoration(
             border: OutlineInputBorder(),
@@ -130,7 +133,7 @@ class _SportsCourtBookingState extends State<SportsCourtBooking> {
                     ? BoxDecoration(
                         color: Colors.blue,
                         borderRadius: BorderRadius.circular(15),
-                    )
+                      )
                     : null,
                 child: Center(
                   child: Text(
@@ -159,15 +162,15 @@ class _SportsCourtBookingState extends State<SportsCourtBooking> {
                         IconButton(
                           icon: const Icon(Icons.chevron_left),
                           onPressed: () {
-                            viewModel.selectedDate.value = 
-                              DateTime(selectedDate.year, selectedDate.month - 1, 1);
+                            viewModel.selectedDate.value =
+                                DateTime(selectedDate.year, selectedDate.month - 1, 1);
                           },
                         ),
                         IconButton(
                           icon: const Icon(Icons.chevron_right),
                           onPressed: () {
-                            viewModel.selectedDate.value = 
-                              DateTime(selectedDate.year, selectedDate.month + 1, 1);
+                            viewModel.selectedDate.value =
+                                DateTime(selectedDate.year, selectedDate.month + 1, 1);
                           },
                         ),
                       ],
@@ -208,7 +211,76 @@ class _SportsCourtBookingState extends State<SportsCourtBooking> {
                   title: Text(slot),
                   value: slot,
                   groupValue: selectedSlot,
-                  onChanged: (value) => viewModel.selectedTimeSlot.value = value,
+                  onChanged: (value) {
+                    viewModel.selectedTimeSlot.value = value;
+                    viewModel.selectedCourt.value = null;
+                  },
+                );
+              }).toList(),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildCourtSelector() {
+    return ValueListenableBuilder<String?>(
+      valueListenable: viewModel.selectedTimeSlot,
+      builder: (context, timeSlot, _) {
+        if (timeSlot == null) {
+          return const Text("Please select a time slot first.");
+        }
+
+        return FutureBuilder<Map<int, bool>>(
+          future: viewModel.getCourtAvailabilityMap(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (!snapshot.hasData) {
+              return const Text("Unable to load court availability.");
+            }
+
+            final availabilityMap = snapshot.data!;
+            return GridView.count(
+              crossAxisCount: 4,
+              shrinkWrap: true,
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
+              physics: const NeverScrollableScrollPhysics(),
+              children: availabilityMap.entries.map((entry) {
+                final court = entry.key;
+                final isAvailable = entry.value;
+                final isSelected = viewModel.selectedCourt.value == court;
+
+                return GestureDetector(
+                  onTap: isAvailable
+                      ? () => setState(() {
+                            viewModel.selectedCourt.value = court;
+                          })
+                      : null,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? Colors.green
+                          : (isAvailable ? Colors.white : Colors.grey.shade300),
+                      border: Border.all(
+                        color: isAvailable ? Colors.blue : Colors.grey,
+                        width: 2,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      'Court $court',
+                      style: TextStyle(
+                        color: isAvailable ? Colors.black : Colors.grey,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
                 );
               }).toList(),
             );
