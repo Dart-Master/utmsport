@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/views/reservations.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'login_page.dart';
-import 'courtBooking.dart'; // Import your booking page
-
+import 'court_booking.dart';
+import 'package:intl/intl.dart';
+import 'reservation_details.dart';
 
 class StudentPage extends StatelessWidget {
   const StudentPage({super.key});
@@ -57,30 +60,10 @@ class StudentPage extends StatelessWidget {
                 ),
               ],
             ),
+            const SizedBox(height: 24),
 
-            const SizedBox(height: 24),
-SizedBox(
-  width: double.infinity,
-  child: ElevatedButton.icon(
-    icon: const Icon(Icons.sports_tennis),
-    label: const Text("Facility Reservation"),
-    style: ElevatedButton.styleFrom(
-      padding: const EdgeInsets.symmetric(vertical: 14),
-      backgroundColor: Colors.blue,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
-    ),
-    onPressed: () {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const SportsCourtBooking()),
-      );
-    },
-  ),
-),
-const SizedBox(height: 24),
-            const SizedBox(height: 24),
+            // Removed original "Facility Reservation" button
+
             Row(
               children: [
                 Expanded(
@@ -105,11 +88,11 @@ const SizedBox(height: 24),
                 const SizedBox(width: 8),
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.blue,
+                    color: const Color.fromARGB(255, 255, 235, 191),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: IconButton(
-                    icon: const Icon(Icons.search, color: Colors.white),
+                    icon: const Icon(Icons.search, color: Color.fromARGB(255, 185, 0, 0)),
                     onPressed: () {
                       // Search functionality placeholder
                     },
@@ -118,6 +101,7 @@ const SizedBox(height: 24),
               ],
             ),
             const SizedBox(height: 24),
+
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -144,7 +128,7 @@ const SizedBox(height: 24),
                           onPressed: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context) => const SportsCourtBooking()),
+                              MaterialPageRoute(builder: (context) => const ReservationsPage()),
                             );
                           },
                           child: const Text(
@@ -175,124 +159,167 @@ const SizedBox(height: 24),
               ],
             ),
             const SizedBox(height: 24),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.grey,
-                    spreadRadius: 2,
-                    blurRadius: 5,
-                    offset: Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Badminton Court Indoor',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Facilities - Court 8',
-                    style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      const Icon(Icons.calendar_today, size: 20, color: Colors.grey),
-                      const SizedBox(width: 8),
-                      Text(
-                        '17 Nov 2025, 16:50–18:50',
-                        style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+
+            // Bookings list
+            Expanded(
+              child: StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('bookings')
+                    .orderBy('date', descending: true)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return const Center(child: Text('Error loading bookings'));
+                  }
+
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (snapshot.data!.docs.isEmpty) {
+                    return const Center(child: Text('No reservations found.'));
+                  }
+
+                  return ListView.builder(
+                    itemCount: snapshot.data!.docs.length,
+                    itemBuilder: (context, index) {
+                      final booking = snapshot.data!.docs[index];
+                      final data = booking.data() as Map<String, dynamic>;
+
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.green[50],
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.check_circle, size: 16, color: Colors.green),
-                            const SizedBox(width: 4),
-                            Text(
-                              'To be check in',
-                              style: TextStyle(
-                                color: Colors.green[800],
-                                fontWeight: FontWeight.bold,
-                              ),
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Colors.grey,
+                              spreadRadius: 2,
+                              blurRadius: 5,
+                              offset: Offset(0, 3),
                             ),
-                            const SizedBox(width: 4),
-                            const Text('👍'),
                           ],
                         ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.more_vert),
-                        onPressed: () {},
-                      ),
-                    ],
-                  ),
-                ],
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${data['sport']} Court',
+                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Facilities - ${data['court'] ?? 'Court'}',
+                              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                const Icon(Icons.calendar_today, size: 20, color: Colors.grey),
+                                const SizedBox(width: 8),
+                                Text(
+                                  '${DateFormat('d MMM yyyy, HH:mm').format((data['date'] as Timestamp).toDate())}',
+                                  style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: Colors.green[50],
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.check_circle, size: 16, color: Colors.green),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        data['status'],
+                                        style: TextStyle(
+                                          color: Colors.green[800],
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      const Text('👍'),
+                                    ],
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.more_vert),
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => ReservationDetailsPage(booking: data),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                },
               ),
             ),
           ],
         ),
       ),
+
       bottomNavigationBar: BottomAppBar(
-        shape: const CircularNotchedRectangle(),
-        notchMargin: 8,
-        child: SizedBox(
-          height: 56,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
-              // You can add other navigation icons here if needed
-            ],
-          ),
+  color: Colors.white,
+  elevation: 10,
+  child: SizedBox(
+    height: 60,
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        IconButton(
+          icon: const Icon(Icons.home),
+          onPressed: () {
+            // Navigate to Home
+          },
         ),
-      ),
-      floatingActionButton: Transform.translate(
-        offset: const Offset(0, 20), // Move the button 20 pixels down
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.grey[200], // Light grey background
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.3),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          padding: const EdgeInsets.all(8), // Space around the FAB
-          child: FloatingActionButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const SportsCourtBooking()),
-              );
-            },
-            child: const Icon(Icons.add),
-            backgroundColor: Colors.blue,
-            tooltip: 'Book a Court',
-          ),
+        IconButton(
+          icon: const Icon(Icons.calendar_today),
+          onPressed: () {
+            // Navigate to Calendar
+          },
         ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        IconButton(
+          icon: const Icon(Icons.add_circle, size: 32, color: Colors.orange),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const SportsCourtBooking()),
+            );
+          },
+        ),
+        IconButton(
+          icon: const Icon(Icons.notifications),
+          onPressed: () {
+            // Navigate to Notifications
+          },
+        ),
+        IconButton(
+          icon: const Icon(Icons.person),
+          onPressed: () {
+            // Navigate to Profile
+          },
+        ),
+      ],
+    ),
+  ),
+),
     );
   }
-}
+} 

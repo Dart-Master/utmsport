@@ -31,14 +31,6 @@ android {
         versionName = flutter.versionName
     }
 
-    defaultConfig {
-        applicationId = "com.example.flutter_application_1"
-        minSdkVersion 23
-        targetSdkVersion 33
-        versionCode = 1
-        versionName = "1.0"
-    }
-
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.
