@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'user_account_management.dart';
 import 'analytic_dashboard.dart'; // Add this import
 import 'booking_management.dart';
+import 'login_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -18,7 +19,8 @@ class MyApp extends StatelessWidget {
       routes: {
         '/page1': (context) => const BookingManagementPage(),
         '/page2': (context) => const UserAccountManagementPage(),
-        '/page3': (context) => const AnalyticDashboardPage(), // This should now work
+        '/page3': (context) =>
+            const AnalyticDashboardPage(), // This should now work
       },
     );
   }
@@ -30,9 +32,15 @@ class AdminDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(''),
-      ),
+      appBar: AppBar(title: const Text('Admin Dashboard'), actions: [
+        IconButton(
+          icon: const Icon(Icons.logout),
+          onPressed: () => Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const LoginPage()),
+          ),
+        ),
+      ]),
       body: Padding(
         padding: const EdgeInsets.all(12.0),
         child: SingleChildScrollView(
