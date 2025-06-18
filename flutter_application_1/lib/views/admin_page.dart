@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'user_account_management.dart';
-import 'analytic_dashboard.dart'; // Add this import
+import 'analytic_dashboard.dart';
 import 'booking_management.dart';
 import 'login_page.dart';
+import 'edit_profile_page.dart'; // Add this import
 
-void main() {
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(const MyApp());
 }
 
@@ -19,8 +24,9 @@ class MyApp extends StatelessWidget {
       routes: {
         '/page1': (context) => const BookingManagementPage(),
         '/page2': (context) => const UserAccountManagementPage(),
-        '/page3': (context) =>
-            const AnalyticDashboardPage(), // This should now work
+
+        '/page3': (context) => const AnalyticDashboardPage(),
+        '/edit_profile': (context) => const EditProfilePage(),
       },
     );
   }
@@ -41,12 +47,146 @@ class AdminDashboard extends StatelessWidget {
           ),
         ),
       ]),
+      backgroundColor: Colors.grey[50],
+      appBar: AppBar(
+        title: const Text(''),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(12.0),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Admin Profile Section
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.1),
+                      spreadRadius: 1,
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    // Profile Picture
+                    Container(
+                      width: 70,
+                      height: 70,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.blue,
+                          width: 3,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.blue.withOpacity(0.2),
+                            spreadRadius: 2,
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: ClipOval(
+                        child: Image.network(
+                          'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              color: Colors.grey[300],
+                              child: const Icon(
+                                Icons.person,
+                                size: 40,
+                                color: Colors.grey,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    // Admin Info
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'John Doe',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'admin@example.com',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.blue[50],
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              'Administrator',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.blue[700],
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Edit Profile Button
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pushNamed(context, '/edit_profile');
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.blue,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.blue.withOpacity(0.3),
+                              spreadRadius: 1,
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.edit,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Welcome Message
               const Text(
                 'Welcome back, admin',
                 style: TextStyle(
@@ -55,16 +195,7 @@ class AdminDashboard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              TextField(
-                decoration: InputDecoration(
-                  labelText: 'Search',
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
+              // Management Buttons
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -96,6 +227,7 @@ class AdminDashboard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 32),
+              // Important Events Section
               const Text(
                 'Important Events',
                 style: TextStyle(
@@ -128,24 +260,7 @@ class AdminDashboard extends StatelessWidget {
   }) {
     return GestureDetector(
       onTap: () {
-        if (route == '/page2') {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const UserAccountManagementPage(),
-            ),
-          );
-        } else if (route == '/page3') {
-          // Add explicit navigation for page3 as well
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const AnalyticDashboardPage(),
-            ),
-          );
-        } else {
-          Navigator.pushNamed(context, route);
-        }
+        Navigator.pushNamed(context, route);
       },
       child: Container(
         width: width,
@@ -233,9 +348,3 @@ class AdminDashboard extends StatelessWidget {
     );
   }
 }
-
-
-
-
-
-// Remove the dummy Page3 class since we're using AnalyticDashboardPage from analytic_dashboard.dart
