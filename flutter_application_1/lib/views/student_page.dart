@@ -302,7 +302,7 @@ class _StudentPageState extends State<StudentPage> {
                 },
               ),
               IconButton(
-                icon: const Icon(Icons.add_circle, size: 32, color: Colors.orange),
+                icon: const Icon(Icons.add_circle, size: 32, color: Color(0xFF870C14)),
                 onPressed: () {
                   Navigator.push(
                     context,
