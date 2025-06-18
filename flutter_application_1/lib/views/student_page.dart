@@ -46,7 +46,7 @@ class _StudentPageState extends State<StudentPage> {
       child: Text(
         label,
         style: TextStyle(
-          color: selectedTabIndex == index ? Colors.blue : Colors.grey[600],
+          color: selectedTabIndex == index ? Color(0xFF870C14) : Colors.grey[600],
           fontWeight: selectedTabIndex == index ? FontWeight.bold : FontWeight.normal,
         ),
       ),
