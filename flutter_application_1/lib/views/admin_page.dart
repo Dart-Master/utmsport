@@ -3,7 +3,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'user_account_management.dart';
 import 'analytic_dashboard.dart';
 import 'booking_management.dart';
+import 'login_page.dart';
 import 'edit_profile_page.dart'; // Add this import
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,6 +24,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/page1': (context) => const BookingManagementPage(),
         '/page2': (context) => const UserAccountManagementPage(),
+
         '/page3': (context) => const AnalyticDashboardPage(),
         '/edit_profile': (context) => const EditProfilePage(),
       },
@@ -35,6 +38,15 @@ class AdminDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(title: const Text('Admin Dashboard'), actions: [
+        IconButton(
+          icon: const Icon(Icons.logout),
+          onPressed: () => Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const LoginPage()),
+          ),
+        ),
+      ]),
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
         title: const Text(''),
