@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'login_page.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -24,9 +26,51 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
+  Future<void> _registerUser() async {
+    try {
+      final UserCredential userCredential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      // Save additional user info to Firestore
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userCredential.user!.uid)
+          .set({
+        'fullName': _nameController.text.trim(),
+        'email': _emailController.text.trim(),
+        'createdAt': Timestamp.now(),
+      });
+
+      // Show success and navigate
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Registration successful!')),
+      );
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginPage()),
+      );
+    } on FirebaseAuthException catch (e) {
+      String errorMsg = 'Registration failed.';
+      if (e.code == 'email-already-in-use') {
+        errorMsg = 'This email is already registered.';
+      } else if (e.code == 'weak-password') {
+        errorMsg = 'Password is too weak.';
+      } else if (e.code == 'invalid-email') {
+        errorMsg = 'Invalid email format.';
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMsg)),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       body: Stack(
         children: [
@@ -36,11 +80,9 @@ class _RegisterPageState extends State<RegisterPage> {
               fit: BoxFit.cover,
             ),
           ),
-
           Container(
             color: const Color(0x00ffd3bb).withOpacity(0.2),
           ),
-
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
@@ -155,7 +197,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 child: ElevatedButton(
                                   onPressed: () {
                                     if (_formKey.currentState!.validate()) {
-                                      // Handle registration logic here
+                                      _registerUser();
                                     }
                                   },
                                   style: ElevatedButton.styleFrom(
@@ -182,7 +224,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           children: [
                             const Text(
                               'Already have an account? ',
-                              style: TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
+                              style: TextStyle(color: Colors.black),
                             ),
                             GestureDetector(
                               onTap: () {
@@ -207,7 +249,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         const Text(
                           'By registering, you agree to our Terms of Service',
                           style: TextStyle(
-                            color: Color.fromARGB(255, 0, 0, 0),
+                            color: Colors.black87,
                             fontSize: 12,
                           ),
                           textAlign: TextAlign.center,
