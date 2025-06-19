@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../viewmodels/profile_viewmodel.dart';
 import 'package:image_picker/image_picker.dart';
+import '../viewmodels/profile_viewmodel.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({Key? key}) : super(key: key);
@@ -35,23 +35,15 @@ class _ProfileViewState extends State<ProfileView> {
   }
 
   Future<void> _pickImage(String type) async {
-    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      setState(() => _isLoading = true);
-      try {
-        if (type == 'profile') {
-          await _viewModel.uploadProfileImage(pickedFile.path);
-        } else {
-          await _viewModel.uploadHeaderImage(pickedFile.path);
-        }
-        await _loadUserData();
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error uploading image: $e')),
-        );
-      }
-      setState(() => _isLoading = false);
-    }
+    // ImagePicker to pick an image from gallery
+    await _viewModel.pickImage(imageType: type);
+    setState(() {
+      _isLoading = true;
+    });
+    await _loadUserData();
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   Future<void> _saveChanges() async {
@@ -198,7 +190,6 @@ class _ProfileViewState extends State<ProfileView> {
                           ),
                         ),
                         const SizedBox(height: 30),
-
                         // About Me
                         const Text(
                           'About me',
@@ -213,7 +204,6 @@ class _ProfileViewState extends State<ProfileView> {
                               )
                             : Text(_viewModel.aboutMe ?? 'No description set'),
                         const SizedBox(height: 20),
-
                         // Phone
                         const Text(
                           'Phone Number',
@@ -228,7 +218,6 @@ class _ProfileViewState extends State<ProfileView> {
                               )
                             : Text(_viewModel.phone ?? 'No phone number set'),
                         const SizedBox(height: 20),
-
                         // Education
                         const Text(
                           'Education',
@@ -241,7 +230,6 @@ class _ProfileViewState extends State<ProfileView> {
                                 decoration: const InputDecoration(labelText: 'Education'),
                               )
                             : Text(_viewModel.education ?? 'No education set'),
-
                         if (_isEditing) ...[
                           const SizedBox(height: 30),
                           SizedBox(

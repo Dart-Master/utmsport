@@ -1,7 +1,7 @@
-// reservations.dart
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'reservation_details.dart';
 
 class ReservationsPage extends StatelessWidget {
@@ -32,7 +32,6 @@ class ReservationsPage extends StatelessWidget {
   }
 }
 
-
 DateTime _parseDate(dynamic dateField) {
   if (dateField is Timestamp) {
     return dateField.toDate();
@@ -43,7 +42,6 @@ DateTime _parseDate(dynamic dateField) {
   }
 }
 
-
 class _ReservationList extends StatelessWidget {
   final List<String> statusFilter;
 
@@ -51,14 +49,17 @@ class _ReservationList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final userEmail = FirebaseAuth.instance.currentUser?.email;
+
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection('bookings')
+          .where('email', isEqualTo: userEmail) // Get bookings for the logged-in user's email
           .orderBy('date', descending: true)
           .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return Center(child: Text('Error: \${snapshot.error}'));
+          return Center(child: Text('Error: ${snapshot.error}'));
         }
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -166,7 +167,7 @@ class _ReservationCard extends StatelessWidget {
       await FirebaseFirestore.instance
           .collection('bookings')
           .doc(bookingId)
-          .update({'status': 'checked in'});
+          .update({'status': 'checked in'});  // Update status to checked in
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Checked in successfully')));
     }
   }
@@ -201,7 +202,7 @@ class _ReservationCard extends StatelessWidget {
             Text('Time: $timeSlot'),
             Text('Pax: $pax'),
             const SizedBox(height: 8),
-            if (status.toLowerCase() == 'confirmed')
+            if (status.toLowerCase() == 'confirmed' || status.toLowerCase() == 'rescheduled')
               ElevatedButton.icon(
                 icon: const Icon(Icons.qr_code),
                 label: const Text('Check In'),

@@ -3,13 +3,13 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 
 class ProfileViewModel {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // ✅ Explicitly reference your Firebase Storage bucket
   final FirebaseStorage _storage = FirebaseStorage.instanceFor(
-    bucket: 'gs://dartmaster-ffc0b.appspot.com',
+    bucket: 'gs://dartmaster-ffc0b.appspot.com',  // Your Firebase Storage bucket URL
   );
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -101,16 +101,16 @@ class ProfileViewModel {
   }
 
   /// Upload profile image to Firebase Storage and update Firestore
-  Future<void> uploadProfileImage(String filePath) async {
+  Future<void> uploadProfileImage(File pickedFile) async {
     final user = _auth.currentUser;
     if (user != null) {
       try {
         final ref = _storage.ref('profile_images/${user.uid}');
-        await ref.putFile(File(filePath));
-        _profileImageUrl = await ref.getDownloadURL();
+        await ref.putFile(pickedFile); // Upload the file
+        _profileImageUrl = await ref.getDownloadURL(); // Get the URL of the uploaded image
 
         await _firestore.collection('users').doc(user.uid).set({
-          'profileImageUrl': _profileImageUrl,
+          'profileImageUrl': _profileImageUrl,  // Store the URL in Firestore
           'lastUpdated': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
       } catch (e) {
@@ -121,21 +121,37 @@ class ProfileViewModel {
   }
 
   /// Upload header image to Firebase Storage and update Firestore
-  Future<void> uploadHeaderImage(String filePath) async {
+  Future<void> uploadHeaderImage(File pickedFile) async {
     final user = _auth.currentUser;
     if (user != null) {
       try {
         final ref = _storage.ref('header_images/${user.uid}');
-        await ref.putFile(File(filePath));
-        _headerImageUrl = await ref.getDownloadURL();
+        await ref.putFile(pickedFile); // Upload the header image
+        _headerImageUrl = await ref.getDownloadURL(); // Get the URL of the uploaded image
 
         await _firestore.collection('users').doc(user.uid).set({
-          'headerImageUrl': _headerImageUrl,
+          'headerImageUrl': _headerImageUrl,  // Store the URL in Firestore
           'lastUpdated': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
       } catch (e) {
         debugPrint('Error uploading header image: $e');
         rethrow;
+      }
+    }
+  }
+
+  /// Function to pick an image using the `image_picker` package
+  Future<void> pickImage({required String imageType}) async {
+    final ImagePicker picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    
+    if (pickedFile != null) {
+      final file = File(pickedFile.path);
+      
+      if (imageType == 'profile') {
+        await uploadProfileImage(file);
+      } else {
+        await uploadHeaderImage(file);
       }
     }
   }

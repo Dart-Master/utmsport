@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/viewmodels/booking_viewmodel.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class SportsCourtBooking extends StatefulWidget {
   const SportsCourtBooking({super.key});
@@ -11,6 +12,24 @@ class SportsCourtBooking extends StatefulWidget {
 class _SportsCourtBookingState extends State<SportsCourtBooking> {
   final SportsCourtBookingViewModel viewModel = SportsCourtBookingViewModel();
   bool _isBooking = false;
+  String? userEmail; // Variable to store user email
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserEmail();
+    viewModel.initialize(); // Initialize the viewModel after user is logged in
+  }
+
+  // Fetch the user email from FirebaseAuth
+  Future<void> _fetchUserEmail() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      setState(() {
+        userEmail = user.email; // Store the user email
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -28,11 +47,19 @@ class _SportsCourtBookingState extends State<SportsCourtBooking> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Display user email
+              if (userEmail != null)
+                Text(
+                  'Logged in as: $userEmail',
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              const SizedBox(height: 20),
+
               const Text('Select Sport:', style: TextStyle(fontSize: 18)),
               const SizedBox(height: 10),
               _buildSportSelector(),
               const SizedBox(height: 20),
-              ValueListenableBuilder<String>(
+              ValueListenableBuilder<String>( 
                 valueListenable: viewModel.selectedSport,
                 builder: (context, sport, _) => Text(
                   '$sport Court',
@@ -57,7 +84,7 @@ class _SportsCourtBookingState extends State<SportsCourtBooking> {
               _buildPaxSelector(),
               const SizedBox(height: 30),
               Center(
-                child: ValueListenableBuilder<String?>(
+                child: ValueListenableBuilder<String?>( 
                   valueListenable: viewModel.selectedTimeSlot,
                   builder: (context, timeSlot, _) {
                     return ElevatedButton(
@@ -82,7 +109,7 @@ class _SportsCourtBookingState extends State<SportsCourtBooking> {
   }
 
   Widget _buildSportSelector() {
-    return ValueListenableBuilder<String>(
+    return ValueListenableBuilder<String>( 
       valueListenable: viewModel.selectedSport,
       builder: (context, sport, _) {
         return DropdownButtonFormField<String>(
@@ -108,7 +135,7 @@ class _SportsCourtBookingState extends State<SportsCourtBooking> {
   }
 
   Widget _buildCalendar() {
-    return ValueListenableBuilder<DateTime>(
+    return ValueListenableBuilder<DateTime>( 
       valueListenable: viewModel.selectedDate,
       builder: (context, selectedDate, _) {
         DateTime firstDayOfMonth = DateTime(selectedDate.year, selectedDate.month, 1);
@@ -198,10 +225,10 @@ class _SportsCourtBookingState extends State<SportsCourtBooking> {
   }
 
   Widget _buildTimeSlots() {
-    return ValueListenableBuilder<String>(
+    return ValueListenableBuilder<String>( 
       valueListenable: viewModel.selectedSport,
       builder: (context, sport, _) {
-        return ValueListenableBuilder<String?>(
+        return ValueListenableBuilder<String?>( 
           valueListenable: viewModel.selectedTimeSlot,
           builder: (context, selectedSlot, _) {
             List<String> slots = viewModel.getTimeSlotsForSelectedSport();
@@ -225,14 +252,14 @@ class _SportsCourtBookingState extends State<SportsCourtBooking> {
   }
 
   Widget _buildCourtSelector() {
-    return ValueListenableBuilder<String?>(
+    return ValueListenableBuilder<String?>( 
       valueListenable: viewModel.selectedTimeSlot,
       builder: (context, timeSlot, _) {
         if (timeSlot == null) {
           return const Text("Please select a time slot first.");
         }
 
-        return FutureBuilder<Map<int, bool>>(
+        return FutureBuilder<Map<int, bool>>( 
           future: viewModel.getCourtAvailabilityMap(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
@@ -291,7 +318,7 @@ class _SportsCourtBookingState extends State<SportsCourtBooking> {
   }
 
   Widget _buildPaxSelector() {
-    return ValueListenableBuilder<int>(
+    return ValueListenableBuilder<int>( 
       valueListenable: viewModel.paxCount,
       builder: (context, count, _) {
         return Container(

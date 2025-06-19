@@ -1,7 +1,7 @@
-// reservation_details.dart
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 class ReservationDetailsPage extends StatefulWidget {
@@ -17,6 +17,7 @@ class _ReservationDetailsPageState extends State<ReservationDetailsPage> {
   late DateTime selectedDate;
   late String selectedTimeSlot;
   bool updating = false;
+  String? userEmail;
 
   List<String> getTimeSlotsForSport(String sport) {
     switch (sport) {
@@ -41,6 +42,9 @@ class _ReservationDetailsPageState extends State<ReservationDetailsPage> {
         ? dateField.toDate()
         : DateTime.tryParse(dateField.toString()) ?? DateTime.now();
     selectedTimeSlot = widget.booking['timeSlot'];
+
+    final user = FirebaseAuth.instance.currentUser;
+    userEmail = user?.email ?? 'No email available';
   }
 
   void _showRescheduleSheet() {
@@ -111,7 +115,7 @@ class _ReservationDetailsPageState extends State<ReservationDetailsPage> {
           .update({
         'date': Timestamp.fromDate(selectedDate),
         'timeSlot': selectedTimeSlot,
-        'status': 'rescheduled',
+        'status': 'rescheduled',  // Change status to 'rescheduled'
       });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Booking successfully rescheduled')),
@@ -154,8 +158,6 @@ class _ReservationDetailsPageState extends State<ReservationDetailsPage> {
   Widget build(BuildContext context) {
     final booking = widget.booking;
     final qrData = booking['qrCode'] ?? booking['id'] ?? 'No QR';
-    final isCheckedIn = (booking['status'] ?? '').toString().toLowerCase() == 'checked in' ||
-        (booking['status'] ?? '').toString().toLowerCase() == 'cancelled';
 
     return Scaffold(
       appBar: AppBar(
@@ -182,6 +184,9 @@ class _ReservationDetailsPageState extends State<ReservationDetailsPage> {
                     Text('Pax: ${booking['pax']}', style: const TextStyle(fontSize: 16)),
                     Text('Status: ${booking['status']}', style: const TextStyle(fontSize: 16)),
                     const SizedBox(height: 24),
+                    Text('Booked by: $userEmail', 
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 24),
                     const Text('Scan this QR code to check in:',
                         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 16),
@@ -193,24 +198,13 @@ class _ReservationDetailsPageState extends State<ReservationDetailsPage> {
                       ),
                     ),
                     const SizedBox(height: 32),
-                    if (!isCheckedIn)
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          ElevatedButton.icon(
-                            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                            icon: const Icon(Icons.cancel),
-                            label: const Text('Cancel'),
-                            onPressed: _cancelBooking,
-                          ),
-                          ElevatedButton.icon(
-                            style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-                            icon: const Icon(Icons.schedule),
-                            label: const Text('Reschedule'),
-                            onPressed: _showRescheduleSheet,
-                          ),
-                        ],
-                      ),
+                  
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                      icon: const Icon(Icons.cancel),
+                      label: const Text('Cancel'),
+                      onPressed: _cancelBooking,
+                    ),
                   ],
                 ),
               ),

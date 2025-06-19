@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class SportsCourtBookingViewModel {
   final ValueNotifier<String> selectedSport = ValueNotifier<String>('Badminton');
@@ -13,7 +14,18 @@ class SportsCourtBookingViewModel {
   String bookingConfirmationMessage = '';
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  User? currentUser; // Store current user info for booking
 
+  // Initialize the view model by getting the current logged-in user
+  void initialize() {
+    currentUser = _auth.currentUser;
+    if (currentUser == null) {
+      throw Exception("User must be logged in to book a court.");
+    }
+  }
+
+  // Get the available time slots for the selected sport
   List<String> getTimeSlotsForSelectedSport() {
     switch (selectedSport.value) {
       case 'Badminton':
@@ -29,6 +41,7 @@ class SportsCourtBookingViewModel {
     }
   }
 
+  // Get the available courts for the selected sport
   List<int> getCourtsForSelectedSport() {
     switch (selectedSport.value) {
       case 'Badminton':
@@ -44,10 +57,12 @@ class SportsCourtBookingViewModel {
     }
   }
 
+  // Check if two dates are the same day
   bool isSameDay(DateTime a, DateTime b) {
     return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 
+  // Get the availability of courts for the selected sport, date, and time slot
   Future<Map<int, bool>> getCourtAvailabilityMap() async {
     if (selectedTimeSlot.value == null) return {};
 
@@ -68,6 +83,7 @@ class SportsCourtBookingViewModel {
     return {for (var court in allCourts) court: !bookedCourts.contains(court)};
   }
 
+  // Submit a booking to Firestore
   Future<void> submitBooking() async {
     if (selectedSport.value.isEmpty ||
         selectedTimeSlot.value == null ||
@@ -83,7 +99,14 @@ class SportsCourtBookingViewModel {
 
     String formattedDate = DateFormat('yyyy-MM-dd').format(selectedDate.value);
 
+    if (currentUser == null) {
+      throw Exception("User must be logged in to make a booking.");
+    }
+
+    // Add booking to Firestore
     await _firestore.collection('bookings').add({
+      'userId': currentUser!.uid,  // Store the logged-in user's ID
+      'email': currentUser!.email,  // Store the logged-in user's email
       'sport': selectedSport.value,
       'date': formattedDate,
       'timeSlot': selectedTimeSlot.value,
@@ -96,6 +119,7 @@ class SportsCourtBookingViewModel {
         'Court ${selectedCourt.value} booked on $formattedDate for ${selectedTimeSlot.value}.';
   }
 
+  // Check if the selected court is available for the chosen sport, date, and time
   Future<bool> isCourtAvailable() async {
     String formattedDate = DateFormat('yyyy-MM-dd').format(selectedDate.value);
 
@@ -109,10 +133,12 @@ class SportsCourtBookingViewModel {
     return snapshot.docs.isEmpty;
   }
 
+  // Get the name of the month based on the month number
   String getMonthName(int month) {
     return DateFormat('MMMM').format(DateTime(0, month));
   }
 
+  // Dispose of the value notifiers when done
   void dispose() {
     selectedSport.dispose();
     selectedDate.dispose();
