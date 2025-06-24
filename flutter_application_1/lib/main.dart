@@ -1,11 +1,12 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'views/booking_management.dart' show BookingManagementPage;
-import 'views/user_auth/login_page.dart';  // Ensure this path is correct
+import 'views/user_auth/login_page.dart'; // Ensure this path is correct
 // Import all the pages you're routing to
-import 'views/admin/admin_page.dart';  // Or wherever your Page1 is located
-import 'views/admin/user_account_management.dart';  // Import UserAccountManagementPage
-import 'views/admin/analytic_dashboard.dart';  // Import AnalyticDashboardPage
+import 'views/admin/admin_page.dart'; // Or wherever your Page1 is located
+import 'views/admin/user_account_management.dart'; // Import UserAccountManagementPage
+import 'views/admin/analytic_dashboard.dart'; // Import AnalyticDashboardPage
+import 'views/organizer/organizer_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,12 +30,13 @@ class MyApp extends StatelessWidget {
       ),
       home: const LoginPage(),
       routes: {
-        '/admin': (context) => const AdminDashboard(),  // Add admin dashboard route
+        '/admin': (context) =>
+            const AdminDashboard(), // Add admin dashboard route
         '/page1': (context) => const BookingManagementPage(),
         '/page2': (context) => const UserAccountManagementPage(),
         '/page3': (context) => const AnalyticDashboardPage(),
+        '/organizer': (context) => const OrganizerPage(),
       },
     );
   }
 }
-

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../viewmodels/login_viewmodel.dart';
 import '../student/student_page.dart';
 import '../admin/admin_page.dart';
+import '../organizer/organizer_page.dart';
 import 'register_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -52,6 +53,11 @@ class _LoginPageState extends State<LoginPage> {
               context,
               MaterialPageRoute(builder: (context) => const AdminDashboard()),
             );
+          } else if (role == "organizer") {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const OrganizerPage()),
+            );
           }
         } else {
           setState(() => _errorMessage = "Invalid email or password");
@@ -73,11 +79,9 @@ class _LoginPageState extends State<LoginPage> {
               fit: BoxFit.cover,
             ),
           ),
-
           Container(
             color: const Color(0x00ffd3bb).withOpacity(0.2),
           ),
-      
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
@@ -146,7 +150,8 @@ class _LoginPageState extends State<LoginPage> {
                               if (_errorMessage != null)
                                 Text(
                                   _errorMessage!,
-                                  style: const TextStyle(color: Color(0xFF870C14)),
+                                  style:
+                                      const TextStyle(color: Color(0xFF870C14)),
                                 ),
                               SizedBox(height: screenHeight * 0.015),
                               SizedBox(
@@ -163,7 +168,8 @@ class _LoginPageState extends State<LoginPage> {
                                   child: _isLoading
                                       ? const CircularProgressIndicator(
                                           valueColor:
-                                              AlwaysStoppedAnimation<Color>(Colors.white),
+                                              AlwaysStoppedAnimation<Color>(
+                                                  Colors.white),
                                         )
                                       : const Text(
                                           'Login',
@@ -182,7 +188,8 @@ class _LoginPageState extends State<LoginPage> {
                           onPressed: () {
                             Navigator.pushReplacement(
                               context,
-                              MaterialPageRoute(builder: (context) => const RegisterPage()),
+                              MaterialPageRoute(
+                                  builder: (context) => const RegisterPage()),
                             );
                           },
                           child: const Text(
