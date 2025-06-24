@@ -29,7 +29,8 @@ class _StudentPageState extends State<StudentPage> {
   Future<void> _fetchUserName() async {
     final uid = _auth.currentUser?.uid;
     if (uid != null) {
-      final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      final doc =
+          await FirebaseFirestore.instance.collection('users').doc(uid).get();
       setState(() {
         userName = doc['name'] ?? 'No name set';
       });
@@ -46,15 +47,20 @@ class _StudentPageState extends State<StudentPage> {
       child: Text(
         label,
         style: TextStyle(
-          color: selectedTabIndex == index ? Color(0xFF870C14) : Colors.grey[600],
-          fontWeight: selectedTabIndex == index ? FontWeight.bold : FontWeight.normal,
+          color:
+              selectedTabIndex == index ? Color(0xFF870C14) : Colors.grey[600],
+          fontWeight:
+              selectedTabIndex == index ? FontWeight.bold : FontWeight.normal,
         ),
       ),
     );
   }
 
   Future<void> _checkInBooking(String bookingId) async {
-    await FirebaseFirestore.instance.collection('bookings').doc(bookingId).update({
+    await FirebaseFirestore.instance
+        .collection('bookings')
+        .doc(bookingId)
+        .update({
       'status': 'Checked-In',
     });
     ScaffoldMessenger.of(context).showSnackBar(
@@ -100,11 +106,9 @@ class _StudentPageState extends State<StudentPage> {
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
-                  _buildTabButton(0, 'Reservation Record'),
+                  _buildTabButton(0, 'My Reservation Record'),
                   const SizedBox(width: 8),
-                  _buildTabButton(1, 'My Reservation Record'),
-                  const SizedBox(width: 8),
-                  _buildTabButton(2, 'Past Reservation'),
+                  _buildTabButton(1, 'Past Reservation'),
                 ],
               ),
             ),
@@ -135,17 +139,14 @@ class _StudentPageState extends State<StudentPage> {
 
                     final status = data['status'] ?? '';
 
+                    // 0 = My Reservation Record, 1 = Past Reservation
                     if (selectedTabIndex == 0) {
-                      return true; // All bookings
-                    }
-
-                    if (selectedTabIndex == 1) {
                       return data['userId'] == userId &&
                           status != 'Checked-In' &&
                           bookingDate.isAfter(now);
                     }
 
-                    if (selectedTabIndex == 2) {
+                    if (selectedTabIndex == 1) {
                       return data['userId'] == userId &&
                           (status == 'Checked-In' || bookingDate.isBefore(now));
                     }
@@ -163,7 +164,8 @@ class _StudentPageState extends State<StudentPage> {
                       if (data['date'] is Timestamp) {
                         bookingDate = (data['date'] as Timestamp).toDate();
                       } else if (data['date'] is String) {
-                        bookingDate = DateTime.tryParse(data['date']) ?? DateTime.now();
+                        bookingDate =
+                            DateTime.tryParse(data['date']) ?? DateTime.now();
                       } else {
                         bookingDate = DateTime.now();
                       }
@@ -191,19 +193,23 @@ class _StudentPageState extends State<StudentPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text('$sport Court',
-                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                style: const TextStyle(
+                                    fontSize: 18, fontWeight: FontWeight.bold)),
                             const SizedBox(height: 8),
                             Text(
                               'Facility: $court',
-                              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                              style: TextStyle(
+                                  fontSize: 16, color: Colors.grey[600]),
                             ),
                             const SizedBox(height: 8),
                             Row(
                               children: [
-                                const Icon(Icons.calendar_today, size: 18, color: Colors.grey),
+                                const Icon(Icons.calendar_today,
+                                    size: 18, color: Colors.grey),
                                 const SizedBox(width: 8),
                                 Text(
-                                  DateFormat('d MMM yyyy, hh:mm a').format(bookingDate),
+                                  DateFormat('d MMM yyyy, hh:mm a')
+                                      .format(bookingDate),
                                   style: TextStyle(color: Colors.grey[700]),
                                 ),
                               ],
@@ -213,7 +219,8 @@ class _StudentPageState extends State<StudentPage> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 6),
                                   decoration: BoxDecoration(
                                     color: Colors.green[50],
                                     borderRadius: BorderRadius.circular(20),
@@ -228,22 +235,29 @@ class _StudentPageState extends State<StudentPage> {
                                 ),
                                 Row(
                                   children: [
-                                    if (data['userId'] == userId && status == 'Upcoming')
+                                    if (data['userId'] == userId &&
+                                        status == 'Upcoming')
                                       TextButton.icon(
                                         onPressed: () async {
-                                          final confirm = await showDialog<bool>(
+                                          final confirm =
+                                              await showDialog<bool>(
                                             context: context,
                                             builder: (context) => AlertDialog(
-                                              title: const Text('Confirm Check-In'),
+                                              title: const Text(
+                                                  'Confirm Check-In'),
                                               content: const Text(
                                                   'Are you sure you want to check in for this booking?'),
                                               actions: [
                                                 TextButton(
-                                                  onPressed: () => Navigator.pop(context, false),
+                                                  onPressed: () =>
+                                                      Navigator.pop(
+                                                          context, false),
                                                   child: const Text('Cancel'),
                                                 ),
                                                 ElevatedButton(
-                                                  onPressed: () => Navigator.pop(context, true),
+                                                  onPressed: () =>
+                                                      Navigator.pop(
+                                                          context, true),
                                                   child: const Text('Check-In'),
                                                 ),
                                               ],
@@ -263,7 +277,8 @@ class _StudentPageState extends State<StudentPage> {
                                           context,
                                           MaterialPageRoute(
                                             builder: (context) =>
-                                                ReservationDetailsPage(booking: data),
+                                                ReservationDetailsPage(
+                                                    booking: data),
                                           ),
                                         );
                                       },
@@ -297,26 +312,31 @@ class _StudentPageState extends State<StudentPage> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const ReservationsPage()),
+                    MaterialPageRoute(
+                        builder: (context) => const ReservationsPage()),
                   );
                 },
               ),
               IconButton(
-                icon: const Icon(Icons.add_circle, size: 32, color: Color(0xFF870C14)),
+                icon: const Icon(Icons.add_circle,
+                    size: 32, color: Color(0xFF870C14)),
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const SportsCourtBooking()),
+                    MaterialPageRoute(
+                        builder: (context) => const SportsCourtBooking()),
                   );
                 },
               ),
-              IconButton(icon: const Icon(Icons.notifications), onPressed: () {}),
+              IconButton(
+                  icon: const Icon(Icons.notifications), onPressed: () {}),
               IconButton(
                 icon: const Icon(Icons.person),
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const ProfileView()),
+                    MaterialPageRoute(
+                        builder: (context) => const ProfileView()),
                   );
                 },
               ),
