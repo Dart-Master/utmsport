@@ -7,7 +7,6 @@ import 'views/admin_page.dart';  // Or wherever your Page1 is located
 import 'views/user_account_management.dart';  // Import UserAccountManagementPage
 import 'views/analytic_dashboard.dart';  // Import AnalyticDashboardPage
 
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
@@ -21,6 +20,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'UTM Sports',
+      debugShowCheckedModeBanner: false, // Disable debug banner
       theme: ThemeData(
         colorScheme: ColorScheme.light(
           primary: const Color(0xFF800000),
@@ -37,3 +37,4 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+

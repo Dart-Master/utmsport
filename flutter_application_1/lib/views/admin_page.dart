@@ -4,8 +4,7 @@ import 'user_account_management.dart';
 import 'analytic_dashboard.dart';
 import 'booking_management.dart';
 import 'login_page.dart';
-import 'edit_profile_page.dart'; // Add this import
-
+import 'edit_profile_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,12 +18,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Search Bar with Buttons and Image Ads',
+      title: 'Admin Dashboard',
       home: const AdminDashboard(),
       routes: {
         '/page1': (context) => const BookingManagementPage(),
         '/page2': (context) => const UserAccountManagementPage(),
-
         '/page3': (context) => const AnalyticDashboardPage(),
         '/edit_profile': (context) => const EditProfilePage(),
       },
@@ -38,21 +36,21 @@ class AdminDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Admin Dashboard'), actions: [
-        IconButton(
-          icon: const Icon(Icons.logout),
-          onPressed: () => Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const LoginPage()),
-          ),
-        ),
-      ]),
-      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text(''),
+        title: const Text('Admin Dashboard'),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () => Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const LoginPage()),
+            ),
+          ),
+        ],
       ),
+      backgroundColor: Colors.grey[50],
       body: Padding(
         padding: const EdgeInsets.all(12.0),
         child: SingleChildScrollView(
@@ -186,6 +184,7 @@ class AdminDashboard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 24),
+
               // Welcome Message
               const Text(
                 'Welcome back, admin',
@@ -195,6 +194,7 @@ class AdminDashboard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
+
               // Management Buttons
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -227,6 +227,7 @@ class AdminDashboard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 32),
+
               // Important Events Section
               const Text(
                 'Important Events',
@@ -270,7 +271,10 @@ class AdminDashboard extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           boxShadow: const [
             BoxShadow(
-                color: Colors.black26, blurRadius: 4, offset: Offset(2, 2)),
+              color: Colors.black26,
+              blurRadius: 4,
+              offset: Offset(2, 2),
+            ),
           ],
         ),
         alignment: Alignment.center,
@@ -312,7 +316,10 @@ class AdminDashboard extends StatelessWidget {
           border: Border.all(color: Colors.orange, width: 1.5),
           boxShadow: const [
             BoxShadow(
-                color: Colors.black12, blurRadius: 3, offset: Offset(1, 1)),
+              color: Colors.black12,
+              blurRadius: 3,
+              offset: Offset(1, 1),
+            ),
           ],
         ),
         child: Image.asset(
@@ -335,7 +342,10 @@ class AdminDashboard extends StatelessWidget {
           border: Border.all(color: Colors.orange, width: 1.5),
           boxShadow: const [
             BoxShadow(
-                color: Colors.black12, blurRadius: 3, offset: Offset(1, 1)),
+              color: Colors.black12,
+              blurRadius: 3,
+              offset: Offset(1, 1),
+            ),
           ],
         ),
         child: Image.network(
