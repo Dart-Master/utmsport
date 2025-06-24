@@ -3,10 +3,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_application_1/views/profile.dart';
 import 'package:flutter_application_1/views/reservations.dart';
-import 'login_page.dart';
-import 'court_booking.dart';
+import '../user_auth/login_page.dart';
+import '../court_booking.dart';
 import 'package:intl/intl.dart';
-import 'reservation_details.dart';
+import '../reservation_details.dart';
 
 class StudentPage extends StatefulWidget {
   const StudentPage({super.key});

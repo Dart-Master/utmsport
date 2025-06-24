@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../viewmodels/login_viewmodel.dart';
-import '../views/student_page.dart';
-import 'admin_page.dart';
+import '../../viewmodels/login_viewmodel.dart';
+import '../student/student_page.dart';
+import '../admin/admin_page.dart';
 import 'register_page.dart';
 
 class LoginPage extends StatefulWidget {

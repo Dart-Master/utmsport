@@ -1,11 +1,11 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'views/booking_management.dart' show BookingManagementPage;
-import 'views/login_page.dart';  // Ensure this path is correct
+import 'views/user_auth/login_page.dart';  // Ensure this path is correct
 // Import all the pages you're routing to
-import 'views/admin_page.dart';  // Or wherever your Page1 is located
-import 'views/user_account_management.dart';  // Import UserAccountManagementPage
-import 'views/analytic_dashboard.dart';  // Import AnalyticDashboardPage
+import 'views/admin/admin_page.dart';  // Or wherever your Page1 is located
+import 'views/admin/user_account_management.dart';  // Import UserAccountManagementPage
+import 'views/admin/analytic_dashboard.dart';  // Import AnalyticDashboardPage
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

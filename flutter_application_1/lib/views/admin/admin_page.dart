@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'user_account_management.dart';
 import 'analytic_dashboard.dart';
-import 'booking_management.dart';
-import 'login_page.dart';
-import 'edit_profile_page.dart';
+import '../booking_management.dart';
+import '../user_auth/login_page.dart';
+import '../edit_profile_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
