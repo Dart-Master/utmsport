@@ -5,7 +5,14 @@ import 'package:intl/intl.dart';
 import '../../viewmodels/event_viewmodel.dart';
 
 class EventBookingPage extends StatefulWidget {
-  const EventBookingPage({super.key});
+  final Map<String, dynamic>? event;
+  final bool isEdit;
+
+  const EventBookingPage({
+    super.key,
+    this.event,
+    this.isEdit = false,
+  });
 
   @override
   State<EventBookingPage> createState() => _EventBookingPageState();
@@ -26,6 +33,46 @@ class _EventBookingPageState extends State<EventBookingPage> {
     super.initState();
     _fetchUserEmail();
     viewModel.initialize();
+
+    // Pre-fill form fields if editing
+    if (widget.isEdit && widget.event != null) {
+      final event = widget.event!;
+      _eventNameController.text = event['eventName'] ?? '';
+      _descriptionController.text = event['description'] ?? '';
+      _maxParticipantsController.text =
+          (event['maxParticipants'] ?? '').toString();
+      _registrationFeeController.text =
+          (event['registrationFee'] ?? '').toString();
+
+      // Set selected sport, date, time slots, courts
+      viewModel.selectedSport.value = event['sport'] ?? 'Badminton';
+      if (event['date'] != null) {
+        if (event['date'] is Timestamp) {
+          viewModel.selectedDate.value = (event['date'] as Timestamp).toDate();
+        } else if (event['date'] is String) {
+          viewModel.selectedDate.value =
+              DateTime.tryParse(event['date']) ?? DateTime.now();
+        }
+      }
+      if (event['timeSlots'] != null) {
+        viewModel.selectedTimeSlots.value =
+            List<String>.from(event['timeSlots']);
+      }
+      if (event['courts'] != null) {
+        // If courts is a list of maps with a 'court' field
+        try {
+          viewModel.selectedCourts.value = List<int>.from(
+            (event['courts'] as List)
+                .map((c) =>
+                    c is Map && c['court'] != null ? c['court'] as int : null)
+                .where((c) => c != null),
+          );
+        } catch (_) {
+          // fallback if courts is just a list of ints
+          viewModel.selectedCourts.value = List<int>.from(event['courts']);
+        }
+      }
+    }
   }
 
   Future<void> _fetchUserEmail() async {
@@ -67,27 +114,70 @@ class _EventBookingPageState extends State<EventBookingPage> {
     setState(() => _isBooking = true);
     try {
       viewModel.initialize();
-      await viewModel.submitEventBooking(
-        eventName: _eventNameController.text.trim(),
-        description: _descriptionController.text.trim(),
-        maxPax: int.parse(_maxParticipantsController.text),
-        registrationFee: double.tryParse(_registrationFeeController.text) ?? 0,
-      );
-      if (!mounted) return;
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Event Created'),
-          content: Text(viewModel.bookingConfirmationMessage),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
-      );
-      // Navigator.pop(context);
+
+      if (widget.isEdit &&
+          widget.event != null &&
+          widget.event!['id'] != null) {
+        // EDIT MODE: Update existing event
+        await FirebaseFirestore.instance
+            .collection('event')
+            .doc(widget.event!['id'])
+            .update({
+          'eventName': _eventNameController.text.trim(),
+          'description': _descriptionController.text.trim(),
+          'sport': viewModel.selectedSport.value,
+          'date': DateFormat('yyyy-MM-dd').format(viewModel.selectedDate.value),
+          'timeSlots': viewModel.selectedTimeSlots.value,
+          'courts': viewModel.selectedCourts.value
+              .map((court) => {
+                    'court': court,
+                    'date': DateFormat('yyyy-MM-dd')
+                        .format(viewModel.selectedDate.value),
+                    'timeSlot': viewModel.selectedTimeSlots.value.join(', '),
+                  })
+              .toList(),
+          'maxParticipants': int.parse(_maxParticipantsController.text),
+          'registrationFee':
+              double.tryParse(_registrationFeeController.text) ?? 0,
+          // add other fields as needed
+        });
+        if (!mounted) return;
+        Navigator.pop(context, {
+          ...widget.event!,
+          'eventName': _eventNameController.text.trim(),
+          'description': _descriptionController.text.trim(),
+          'sport': viewModel.selectedSport.value,
+          'date': DateFormat('yyyy-MM-dd').format(viewModel.selectedDate.value),
+          'timeSlots': viewModel.selectedTimeSlots.value,
+          'courts': viewModel.selectedCourts.value,
+          'maxParticipants': int.parse(_maxParticipantsController.text),
+          'registrationFee':
+              double.tryParse(_registrationFeeController.text) ?? 0,
+        });
+      } else {
+        // CREATE MODE: Create new event
+        await viewModel.submitEventBooking(
+          eventName: _eventNameController.text.trim(),
+          description: _descriptionController.text.trim(),
+          maxPax: int.parse(_maxParticipantsController.text),
+          registrationFee:
+              double.tryParse(_registrationFeeController.text) ?? 0,
+        );
+        if (!mounted) return;
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Event Created'),
+            content: Text(viewModel.bookingConfirmationMessage),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

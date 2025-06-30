@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'event_booking.dart';
 
 class EventDetailsPage extends StatefulWidget {
   final Map<String, dynamic> event;
@@ -77,12 +78,19 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                eventName,
-                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              Expanded(
+                child: Text(
+                  eventName,
+                  style: const TextStyle(
+                      fontSize: 22, fontWeight: FontWeight.bold),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
               ),
+              const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: statusBgColor,
                   borderRadius: BorderRadius.circular(20),
@@ -127,13 +135,25 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
           if (eventData['courts'] != null && eventData['courts'] is List)
             ...List<Widget>.from(
               (eventData['courts'] as List).map((court) {
-                final courtName = court['courtName'] ?? 'Court';
-                final date = court['date'] ?? '';
-                final timeSlot = court['timeSlot'] ?? '';
+                String courtName = 'Court';
+                String date = '';
+                String timeSlot = '';
+                if (court is Map) {
+                  courtName = court['courtName'] ??
+                      (court['court'] != null
+                          ? 'Court ${court['court']}'
+                          : 'Court');
+                  date = court['date'] ?? '';
+                  timeSlot = court['timeSlot'] ?? '';
+                } else if (court is int) {
+                  courtName = 'Court $court';
+                }
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4.0),
                   child: Text(
-                    '$courtName | $date | $timeSlot',
+                    '$courtName'
+                    '${date.isNotEmpty ? ' | $date' : ''}'
+                    '${timeSlot.isNotEmpty ? ' | $timeSlot' : ''}',
                     style: const TextStyle(fontSize: 14),
                   ),
                 );
@@ -172,35 +192,56 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
             ),
           const SizedBox(height: 24),
           // Action Buttons
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              ElevatedButton.icon(
-                icon: const Icon(Icons.edit),
-                label: const Text('Edit Event'),
-                onPressed: () {
-                  // TODO: Implement edit event navigation
-                },
-              ),
-              ElevatedButton.icon(
-                icon: const Icon(Icons.add),
-                label: const Text('Book More Courts'),
-                onPressed: () {
-                  // TODO: Implement navigation to booking page for more courts
-                },
-              ),
-              if (status != 'Cancelled')
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
                 ElevatedButton.icon(
-                  icon: const Icon(Icons.cancel),
-                  label: const Text('Cancel Event'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    foregroundColor: Colors.white,
-                  ),
-                  onPressed: _cancelEvent,
+                  icon: const Icon(Icons.edit),
+                  label: const Text('Edit Event'),
+                  onPressed: () async {
+                    final updatedEvent = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EventBookingPage(
+                          event: eventData,
+                          isEdit: true,
+                        ),
+                      ),
+                    );
+                    if (updatedEvent != null) {
+                      setState(() {
+                        eventData = updatedEvent;
+                      });
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Event updated')),
+                      );
+                    }
+                  },
                 ),
-            ],
+                const SizedBox(width: 12),
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.add),
+                  label: const Text('Book More Courts'),
+                  onPressed: () {
+                    // TODO: Implement navigation to booking page for more courts
+                  },
+                ),
+              ],
+            ),
           ),
+          const SizedBox(height: 12),
+          if (status != 'Cancelled')
+            ElevatedButton.icon(
+              icon: const Icon(Icons.cancel),
+              label: const Text('Cancel Event'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: _cancelEvent,
+            ),
         ],
       ),
     );

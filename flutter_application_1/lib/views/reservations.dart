@@ -24,7 +24,8 @@ class ReservationsPage extends StatelessWidget {
         body: const TabBarView(
           children: [
             _ReservationList(statusFilter: ['confirmed', 'rescheduled']),
-            _ReservationList(statusFilter: ['checked in', 'cancelled', 'completed']),
+            _ReservationList(
+                statusFilter: ['checked in', 'cancelled', 'completed']),
           ],
         ),
       ),
@@ -54,7 +55,9 @@ class _ReservationList extends StatelessWidget {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection('bookings')
-          .where('email', isEqualTo: userEmail) // Get bookings for the logged-in user's email
+          .where('email',
+              isEqualTo:
+                  userEmail) // Get bookings for the logged-in user's email
           .orderBy('date', descending: true)
           .snapshots(),
       builder: (context, snapshot) {
@@ -67,7 +70,8 @@ class _ReservationList extends StatelessWidget {
 
         final docs = snapshot.data!.docs.where((doc) {
           final data = doc.data() as Map<String, dynamic>;
-          final status = (data['status'] ?? 'confirmed').toString().toLowerCase();
+          final status =
+              (data['status'] ?? 'confirmed').toString().toLowerCase();
           return statusFilter.contains(status);
         }).toList();
 
@@ -85,10 +89,13 @@ class _ReservationList extends StatelessWidget {
             final sport = (data['sport'] ?? 'Unknown').toString();
             final timeSlot = (data['timeSlot'] ?? '-').toString();
             final status = (data['status'] ?? 'confirmed').toString();
-            final pax = data['pax'] is int ? data['pax'] : int.tryParse(data['pax']?.toString() ?? '') ?? 0;
+            final pax = data['pax'] is int
+                ? data['pax']
+                : int.tryParse(data['pax']?.toString() ?? '') ?? 0;
             final date = data['date'] is Timestamp
                 ? _parseDate(data['date'])
-                : DateTime.tryParse(data['date']?.toString() ?? '') ?? DateTime.now();
+                : DateTime.tryParse(data['date']?.toString() ?? '') ??
+                    DateTime.now();
 
             return GestureDetector(
               onTap: () {
@@ -157,8 +164,12 @@ class _ReservationCard extends StatelessWidget {
         title: const Text('Check In'),
         content: const Text('Are you sure you want to check in?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('No')),
-          ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('Yes')),
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('No')),
+          ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Yes')),
         ],
       ),
     );
@@ -167,8 +178,9 @@ class _ReservationCard extends StatelessWidget {
       await FirebaseFirestore.instance
           .collection('bookings')
           .doc(bookingId)
-          .update({'status': 'checked in'});  // Update status to checked in
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Checked in successfully')));
+          .update({'status': 'checked in'}); // Update status to checked in
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Checked in successfully')));
     }
   }
 
@@ -184,16 +196,22 @@ class _ReservationCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(sport, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                Text(sport,
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold)),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: _getStatusColor(status).withOpacity(0.2),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: _getStatusColor(status), width: 1),
+                    border:
+                        Border.all(color: _getStatusColor(status), width: 1),
                   ),
                   child: Text(status.toUpperCase(),
-                      style: TextStyle(color: _getStatusColor(status), fontWeight: FontWeight.bold)),
+                      style: TextStyle(
+                          color: _getStatusColor(status),
+                          fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
@@ -202,7 +220,8 @@ class _ReservationCard extends StatelessWidget {
             Text('Time: $timeSlot'),
             Text('Pax: $pax'),
             const SizedBox(height: 8),
-            if (status.toLowerCase() == 'confirmed' || status.toLowerCase() == 'rescheduled')
+            if (status.toLowerCase() == 'confirmed' ||
+                status.toLowerCase() == 'rescheduled')
               ElevatedButton.icon(
                 icon: const Icon(Icons.qr_code),
                 label: const Text('Check In'),
