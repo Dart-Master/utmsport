@@ -10,33 +10,45 @@ class BookingManagementPage extends StatefulWidget {
 }
 
 class _BookingManagementPageState extends State<BookingManagementPage> {
-  String selectedTab = 'Pending';
+  String selectedTab = 'Reservation Record';
+  String selectedStatusFilter = 'All';
+  String selectedSportFilter = 'All';
+  DateTime? selectedDateFilter;
+
+  // Theme colors
+  static const Color primaryColor = Color(0xFF870C14);
+  static const Color primaryLight = Color(0xFFB91C1C);
+  static const Color backgroundColor = Color(0xFFF8F9FA);
+  static const Color cardColor = Colors.white;
+  static const Color textDark = Color(0xFF1F2937);
+  static const Color textLight = Color(0xFF6B7280);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: backgroundColor,
       appBar: AppBar(
         title: const Text(
           'Booking Management',
           style: TextStyle(
-            color: Colors.black,
+            color: Colors.white,
             fontSize: 22,
             fontWeight: FontWeight.w600,
           ),
         ),
-        backgroundColor: Colors.grey[50],
+        backgroundColor: primaryColor,
         elevation: 0,
+        centerTitle: true,
         leading: IconButton(
           icon: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.blue[100],
+              color: Colors.white.withOpacity(0.2),
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(
               Icons.arrow_back_ios,
-              color: Colors.blue,
+              color: Colors.white,
               size: 16,
             ),
           ),
@@ -46,23 +58,26 @@ class _BookingManagementPageState extends State<BookingManagementPage> {
       body: Column(
         children: [
           // Tab buttons
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  _buildTabButton('Pending'),
-                  const SizedBox(width: 12),
-                  _buildTabButton('Reservation Record'),
-                  const SizedBox(width: 12),
-                  _buildTabButton('Approved'),
-                  const SizedBox(width: 12),
-                  _buildTabButton('Cancelled'),
-                ],
+          Container(
+            color: primaryColor,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    _buildTabButton('Reservation Record'),
+                    const SizedBox(width: 12),
+                    _buildTabButton('Approved'),
+                    const SizedBox(width: 12),
+                    _buildTabButton('Cancelled'),
+                  ],
+                ),
               ),
             ),
           ),
+          // Filters for Reservation Record
+          if (selectedTab == 'Reservation Record') _buildFilters(),
           // Tab content
           Expanded(
             child: selectedTab == 'Reservation Record'
@@ -106,15 +121,19 @@ class _BookingManagementPageState extends State<BookingManagementPage> {
         });
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.blue[200] : Colors.grey[300],
-          borderRadius: BorderRadius.circular(20),
+          color: isSelected ? Colors.white : Colors.transparent,
+          borderRadius: BorderRadius.circular(25),
+          border: Border.all(
+            color: isSelected ? Colors.white : Colors.white.withOpacity(0.5),
+            width: 1,
+          ),
         ),
         child: Text(
           title,
           style: TextStyle(
-            color: isSelected ? Colors.blue[800] : Colors.grey[700],
+            color: isSelected ? primaryColor : Colors.white,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
             fontSize: 14,
           ),
@@ -123,7 +142,222 @@ class _BookingManagementPageState extends State<BookingManagementPage> {
     );
   }
 
-  // Firestore Reservation Record Tab
+  Widget _buildFilters() {
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Filters',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: textDark,
+            ),
+          ),
+          const SizedBox(height: 16),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                // Status Filter
+                _buildFilterDropdown(
+                  'Status',
+                  selectedStatusFilter,
+                  ['All', 'Pending', 'Approved', 'Cancelled'],
+                  (value) => setState(() => selectedStatusFilter = value!),
+                ),
+                const SizedBox(width: 16),
+                // Sport Filter
+                _buildFilterDropdown(
+                  'Sport',
+                  selectedSportFilter,
+                  ['All', 'Basketball', 'Badminton', 'Tennis', 'Football'],
+                  (value) => setState(() => selectedSportFilter = value!),
+                ),
+                const SizedBox(width: 16),
+                // Date Filter
+                _buildDateFilter(),
+                const SizedBox(width: 16),
+                // Clear Filters Button
+                _buildClearFiltersButton(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterDropdown(String label, String value, List<String> items, Function(String?) onChanged) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: textLight,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey.shade300),
+            borderRadius: BorderRadius.circular(8),
+            color: Colors.white,
+          ),
+          child: DropdownButton<String>(
+            value: value,
+            items: items.map((item) {
+              return DropdownMenuItem<String>(
+                value: item,
+                child: Text(item),
+              );
+            }).toList(),
+            onChanged: onChanged,
+            underline: const SizedBox(),
+            style: const TextStyle(
+              fontSize: 14,
+              color: textDark,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDateFilter() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Date',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: textLight,
+          ),
+        ),
+        const SizedBox(height: 4),
+        GestureDetector(
+          onTap: () async {
+            final DateTime? picked = await showDatePicker(
+              context: context,
+              initialDate: selectedDateFilter ?? DateTime.now(),
+              firstDate: DateTime(2020),
+              lastDate: DateTime(2030),
+              builder: (context, child) {
+                return Theme(
+                  data: Theme.of(context).copyWith(
+                    colorScheme: ColorScheme.light(
+                      primary: primaryColor,
+                      onPrimary: Colors.white,
+                      surface: Colors.white,
+                      onSurface: textDark,
+                    ),
+                  ),
+                  child: child!,
+                );
+              },
+            );
+            if (picked != null) {
+              setState(() {
+                selectedDateFilter = picked;
+              });
+            }
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(8),
+              color: Colors.white,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.calendar_today,
+                  size: 16,
+                  color: primaryColor,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  selectedDateFilter != null
+                      ? DateFormat('MMM dd, yyyy').format(selectedDateFilter!)
+                      : 'Select Date',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: textDark,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildClearFiltersButton() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Actions',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: textLight,
+          ),
+        ),
+        const SizedBox(height: 4),
+        GestureDetector(
+          onTap: () {
+            setState(() {
+              selectedStatusFilter = 'All';
+              selectedSportFilter = 'All';
+              selectedDateFilter = null;
+            });
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: primaryColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: primaryColor.withOpacity(0.3)),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.clear,
+                  size: 16,
+                  color: primaryColor,
+                ),
+                SizedBox(width: 4),
+                Text(
+                  'Clear',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: primaryColor,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Firestore Reservation Record Tab with Filters
   Widget _buildReservationRecordTab() {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
@@ -135,20 +369,53 @@ class _BookingManagementPageState extends State<BookingManagementPage> {
           return const Center(child: Text('Error loading bookings'));
         }
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
+            ),
+          );
         }
 
         final allDocs = snapshot.data!.docs;
+        final filteredDocs = _applyFilters(allDocs);
 
-        if (allDocs.isEmpty) {
-          return const Center(child: Text('No bookings found.'));
+        if (filteredDocs.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.event_busy,
+                  size: 64,
+                  color: Colors.grey.shade400,
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'No bookings found',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                    color: textLight,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Try adjusting your filters',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: textLight,
+                  ),
+                ),
+              ],
+            ),
+          );
         }
 
         return ListView.builder(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          itemCount: allDocs.length,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          itemCount: filteredDocs.length,
           itemBuilder: (context, index) {
-            final booking = allDocs[index];
+            final booking = filteredDocs[index];
             final data = booking.data() as Map<String, dynamic>;
 
             DateTime bookingDate;
@@ -164,99 +431,98 @@ class _BookingManagementPageState extends State<BookingManagementPage> {
             final court = data['court'] ?? 'N/A';
             final status = data['status'] ?? 'Pending';
             final userId = data['userId'] ?? 'Unknown';
+            final timeSlot = data['timeSlot'] ?? 'N/A';
+            final pax = data['pax'] ?? 1;
 
             return Container(
               margin: const EdgeInsets.only(bottom: 16),
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: cardColor,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.05),
                     blurRadius: 10,
-                    offset: const Offset(0, 2),
+                    offset: const Offset(0, 4),
                   ),
                 ],
               ),
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Icon or image placeholder
-                  Container(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      color: Colors.grey[200],
-                    ),
-                    child:
-                        const Icon(Icons.sports, size: 40, color: Colors.grey),
-                  ),
-                  const SizedBox(width: 16),
-                  // Content
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '$sport Court',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black87,
-                          ),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Sport Icon
+                      Container(
+                        width: 60,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          color: primaryColor.withOpacity(0.1),
                         ),
-                        const SizedBox(height: 6),
-                        Text(
-                          'Facility: $court',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[600],
-                          ),
+                        child: Icon(
+                          _getSportIcon(sport),
+                          size: 32,
+                          color: primaryColor,
                         ),
-                        const SizedBox(height: 6),
-                        Text(
-                          DateFormat('d MMM yyyy, hh:mm a').format(bookingDate),
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          'User ID: $userId',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey[500],
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: status == 'approved'
-                                ? Colors.green[100]
-                                : status == 'pending'
-                                    ? Colors.yellow[100]
-                                    : Colors.red[100],
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            status.toUpperCase(),
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: status == 'approved'
-                                  ? Colors.green[700]
-                                  : status == 'pending'
-                                      ? Colors.orange[700]
-                                      : Colors.red[700],
+                      ),
+                      const SizedBox(width: 16),
+                      // Content
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    '$sport Court',
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w600,
+                                      color: textDark,
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: _getStatusColor(status).withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: _getStatusColor(status).withOpacity(0.3),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    status.toUpperCase(),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: _getStatusColor(status),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
+                            const SizedBox(height: 12),
+                            _buildInfoRow(Icons.location_on, 'Court $court'),
+                            const SizedBox(height: 8),
+                            _buildInfoRow(Icons.access_time, timeSlot),
+                            const SizedBox(height: 8),
+                            _buildInfoRow(Icons.calendar_today, 
+                                DateFormat('MMM dd, yyyy').format(bookingDate)),
+                            const SizedBox(height: 8),
+                            _buildInfoRow(Icons.people, '$pax Players'),
+                            const SizedBox(height: 8),
+                            _buildInfoRow(Icons.person, userId),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -267,29 +533,102 @@ class _BookingManagementPageState extends State<BookingManagementPage> {
     );
   }
 
-  // Local sample data for other tabs
+  Widget _buildInfoRow(IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(
+          icon,
+          size: 16,
+          color: textLight,
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(
+              fontSize: 14,
+              color: textLight,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  List<QueryDocumentSnapshot> _applyFilters(List<QueryDocumentSnapshot> docs) {
+    return docs.where((doc) {
+      final data = doc.data() as Map<String, dynamic>;
+      final status = data['status']?.toString().toLowerCase() ?? 'pending';
+      final sport = data['sport']?.toString().toLowerCase() ?? '';
+      
+      DateTime bookingDate;
+      if (data['date'] is Timestamp) {
+        bookingDate = (data['date'] as Timestamp).toDate();
+      } else if (data['date'] is String) {
+        bookingDate = DateTime.tryParse(data['date']) ?? DateTime.now();
+      } else {
+        bookingDate = DateTime.now();
+      }
+
+      // Status filter
+      if (selectedStatusFilter != 'All' && 
+          status != selectedStatusFilter.toLowerCase()) {
+        return false;
+      }
+
+      // Sport filter
+      if (selectedSportFilter != 'All' && 
+          !sport.contains(selectedSportFilter.toLowerCase())) {
+        return false;
+      }
+
+      // Date filter
+      if (selectedDateFilter != null) {
+        if (!_isSameDate(bookingDate, selectedDateFilter!)) {
+          return false;
+        }
+      }
+
+      return true;
+    }).toList();
+  }
+
+  bool _isSameDate(DateTime date1, DateTime date2) {
+    return date1.year == date2.year &&
+           date1.month == date2.month &&
+           date1.day == date2.day;
+  }
+
+  IconData _getSportIcon(String sport) {
+    switch (sport.toLowerCase()) {
+      case 'basketball':
+        return Icons.sports_basketball;
+      case 'badminton':
+        return Icons.sports_tennis;
+      case 'tennis':
+        return Icons.sports_tennis;
+      case 'football':
+        return Icons.sports_soccer;
+      default:
+        return Icons.sports;
+    }
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'approved':
+        return Colors.green;
+      case 'pending':
+        return Colors.orange;
+      case 'cancelled':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  // Local sample data for other tabs (removed pending bookings)
   final List<BookingItem> bookings = [
-    BookingItem(
-      id: '1',
-      title: 'Badminton Court Indoor Facilities - Court 8',
-      date: '17 Nov 2021, 16:50-18:50',
-      status: 'pending',
-      imageUrl: 'assets/images/BadmintonCourt.jpeg',
-    ),
-    BookingItem(
-      id: '2',
-      title: 'Basketball Court - Main Court',
-      date: '16 Nov 2021, 16:50-18:50',
-      status: 'pending',
-      imageUrl: 'assets/images/BasketballCourt.jpeg',
-    ),
-    BookingItem(
-      id: '3',
-      title: 'Basketball Court - Court 2',
-      date: '15 Nov 2021, 16:50-18:50',
-      status: 'pending',
-      imageUrl: 'assets/images/BasketballCourt.jpeg',
-    ),
     BookingItem(
       id: '4',
       title: 'Tennis Court Outdoor - Court 3',
@@ -308,10 +647,6 @@ class _BookingManagementPageState extends State<BookingManagementPage> {
 
   List<BookingItem> get filteredBookings {
     switch (selectedTab.toLowerCase()) {
-      case 'pending':
-        return bookings
-            .where((booking) => booking.status == 'pending')
-            .toList();
       case 'approved':
         return bookings
             .where((booking) => booking.status == 'approved')
@@ -327,7 +662,7 @@ class _BookingManagementPageState extends State<BookingManagementPage> {
 
   Widget _buildLocalBookingList() {
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       itemCount: filteredBookings.length,
       itemBuilder: (context, index) {
         return _buildBookingCard(filteredBookings[index]);
@@ -338,15 +673,15 @@ class _BookingManagementPageState extends State<BookingManagementPage> {
   Widget _buildBookingCard(BookingItem booking) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
-            offset: const Offset(0, 2),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -370,8 +705,8 @@ class _BookingManagementPageState extends State<BookingManagementPage> {
                   return Container(
                     width: 60,
                     height: 60,
-                    color: Colors.grey[300],
-                    child: const Icon(Icons.sports, color: Colors.grey),
+                    color: primaryColor.withOpacity(0.1),
+                    child: const Icon(Icons.sports, color: primaryColor),
                   );
                 },
               ),
@@ -388,84 +723,40 @@ class _BookingManagementPageState extends State<BookingManagementPage> {
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black87,
+                    color: textDark,
                   ),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   booking.date,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 14,
-                    color: Colors.grey[600],
+                    color: textLight,
                   ),
                 ),
                 const SizedBox(height: 12),
-                if (booking.status == 'pending') ...[
-                  Row(
-                    children: [
-                      _buildActionButton(
-                        'Approve',
-                        Colors.blue,
-                        Colors.white,
-                        () => _approveBooking(booking),
-                      ),
-                      const SizedBox(width: 12),
-                      _buildActionButton(
-                        'Reject',
-                        Colors.red[100]!,
-                        Colors.red[700]!,
-                        () => _rejectBooking(booking),
-                      ),
-                    ],
-                  ),
-                ] else ...[
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: booking.status == 'approved'
-                          ? Colors.green[100]
-                          : Colors.red[100],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      booking.status.toUpperCase(),
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: booking.status == 'approved'
-                            ? Colors.green[700]
-                            : Colors.red[700],
-                      ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: _getStatusColor(booking.status).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: _getStatusColor(booking.status).withOpacity(0.3),
                     ),
                   ),
-                ],
+                  child: Text(
+                    booking.status.toUpperCase(),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: _getStatusColor(booking.status),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildActionButton(String text, Color backgroundColor, Color textColor,
-      VoidCallback onPressed) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(
-          text,
-          style: TextStyle(
-            color: textColor,
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
       ),
     );
   }
@@ -475,36 +766,8 @@ class _BookingManagementPageState extends State<BookingManagementPage> {
       padding: const EdgeInsets.all(12),
       child: Icon(
         icon,
-        color: isActive ? Colors.blue : Colors.grey[400],
+        color: isActive ? primaryColor : Colors.grey[400],
         size: 24,
-      ),
-    );
-  }
-
-  void _approveBooking(BookingItem booking) {
-    setState(() {
-      booking.status = 'approved';
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Booking ${booking.id} approved successfully'),
-        backgroundColor: Colors.green,
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
-
-  void _rejectBooking(BookingItem booking) {
-    setState(() {
-      booking.status = 'cancelled';
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Booking ${booking.id} rejected'),
-        backgroundColor: Colors.red,
-        duration: const Duration(seconds: 2),
       ),
     );
   }

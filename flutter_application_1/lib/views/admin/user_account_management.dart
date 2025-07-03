@@ -31,10 +31,10 @@ class _UserAccountManagementPageState extends State<UserAccountManagementPage> {
           icon: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.blue[100],
+              color: Color.fromARGB(255, 255, 255, 255),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.arrow_back, color: Colors.blue, size: 20),
+            child: const Icon(Icons.arrow_back, color: Color(0xFF870C14), size: 20),
           ),
           onPressed: () => Navigator.pop(context),
         ),
@@ -72,7 +72,7 @@ class _UserAccountManagementPageState extends State<UserAccountManagementPage> {
                     suffixIcon: Container(
                       margin: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.blue,
+                        color: Color(0xFF870C14),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Icon(Icons.search, color: Colors.white, size: 20),
@@ -151,7 +151,7 @@ class _UserAccountManagementPageState extends State<UserAccountManagementPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.blue : Colors.grey[200],
+          color: isSelected ? Color(0xFF870C14) : Colors.grey[200],
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
@@ -216,18 +216,18 @@ class _UserAccountManagementPageState extends State<UserAccountManagementPage> {
           role == 'student'
               ? _buildActionButton(
                   'Edit Role',
-                  Colors.blue,
+                  Color(0xFF870C14),
                   () => _showRoleDialog(user, userData),
                 )
               : _buildActionButton(
                   'Edit Role',
-                  Colors.blue,
+                  Color(0xFF870C14),
                   () => _showRoleDialog(user, userData),
                 ),
           const SizedBox(width: 8),
           _buildActionButton(
             'Remove',
-            Colors.blue,
+            Color(0xFF870C14),
             () => _showDeleteDialog(user, userData),
           ),
         ],

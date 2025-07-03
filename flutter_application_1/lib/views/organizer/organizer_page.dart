@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_application_1/views/profile.dart';
+import 'package:flutter_application_1/views/edit_profile_page.dart';
 import 'package:flutter_application_1/views/reservations.dart';
 import '../user_auth/login_page.dart';
 import 'package:intl/intl.dart';
@@ -464,7 +464,7 @@ class _OrganizerPageState extends State<OrganizerPage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const ProfileView()),
+                        builder: (context) => const EditProfilePage()),
                   );
                 },
               ),
