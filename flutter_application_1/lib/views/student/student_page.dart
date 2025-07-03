@@ -68,6 +68,27 @@ class _StudentPageState extends State<StudentPage> {
     );
   }
 
+  // Add this function to handle event registration
+  Future<void> _registerForEvent(String eventId) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    final docRef = FirebaseFirestore.instance.collection('event').doc(eventId);
+
+    await docRef.update({
+      'registeredParticipants': FieldValue.arrayUnion([
+        {
+          'uid': user.uid,
+          'email': user.email,
+          'registeredAt': DateTime.now().toIso8601String(),
+        }
+      ])
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Successfully registered for event!')),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final userId = FirebaseAuth.instance.currentUser?.uid;
@@ -109,191 +130,290 @@ class _StudentPageState extends State<StudentPage> {
                   _buildTabButton(0, 'My Reservation Record'),
                   const SizedBox(width: 8),
                   _buildTabButton(1, 'Past Reservation'),
+                  const SizedBox(width: 8),
+                  _buildTabButton(2, 'Published Events'), // New tab
                 ],
               ),
             ),
             const SizedBox(height: 16),
             Expanded(
-              child: StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance
-                    .collection('bookings')
-                    .orderBy('date', descending: true)
-                    .snapshots(),
-                builder: (context, snapshot) {
-                  if (snapshot.hasError) {
-                    return const Center(child: Text('Error loading bookings'));
-                  }
+              child: selectedTabIndex == 2
+                  ? StreamBuilder<QuerySnapshot>(
+                      stream: FirebaseFirestore.instance
+                          .collection('event')
+                          .where('status', isEqualTo: 'Published')
+                          .orderBy('date', descending: false)
+                          .snapshots(),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasError) {
+                          return const Center(
+                              child: Text('Error loading events'));
+                        }
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        }
+                        final events = snapshot.data!.docs;
+                        if (events.isEmpty) {
+                          return const Center(
+                              child: Text('No published events.'));
+                        }
+                        return ListView.builder(
+                          itemCount: events.length,
+                          itemBuilder: (context, index) {
+                            final event = events[index];
+                            final data = event.data() as Map<String, dynamic>;
+                            final eventId = event.id;
+                            final eventName = data['eventName'] ?? 'Event';
+                            final sport = data['sport'] ?? '';
+                            final date = data['date'] ?? '';
+                            final maxParticipants =
+                                data['maxParticipants'] ?? 0;
+                            final registered =
+                                (data['registeredParticipants'] as List?) ?? [];
+                            final alreadyRegistered =
+                                registered.any((p) => p['uid'] == userId);
 
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
+                            DateTime eventDate;
+                            if (data['date'] is Timestamp) {
+                              eventDate = (data['date'] as Timestamp).toDate();
+                            } else if (data['date'] is String) {
+                              eventDate = DateTime.tryParse(data['date']) ??
+                                  DateTime.now();
+                            } else {
+                              eventDate = DateTime.now();
+                            }
 
-                  final allDocs = snapshot.data!.docs;
-                  final now = DateTime.now();
-
-                  final filteredDocs = allDocs.where((doc) {
-                    final data = doc.data() as Map<String, dynamic>;
-                    final bookingDate = data['date'] is Timestamp
-                        ? (data['date'] as Timestamp).toDate()
-                        : DateTime.now();
-
-                    final status = data['status'] ?? '';
-
-                    // 0 = My Reservation Record, 1 = Past Reservation
-                    if (selectedTabIndex == 0) {
-                      return data['userId'] == userId &&
-                          status != 'Checked-In' &&
-                          bookingDate.isAfter(now);
-                    }
-
-                    if (selectedTabIndex == 1) {
-                      return data['userId'] == userId &&
-                          (status == 'Checked-In' || bookingDate.isBefore(now));
-                    }
-
-                    return false;
-                  }).toList();
-
-                  return ListView.builder(
-                    itemCount: filteredDocs.length,
-                    itemBuilder: (context, index) {
-                      final booking = filteredDocs[index];
-                      final data = booking.data() as Map<String, dynamic>;
-
-                      DateTime bookingDate;
-                      if (data['date'] is Timestamp) {
-                        bookingDate = (data['date'] as Timestamp).toDate();
-                      } else if (data['date'] is String) {
-                        bookingDate =
-                            DateTime.tryParse(data['date']) ?? DateTime.now();
-                      } else {
-                        bookingDate = DateTime.now();
-                      }
-
-                      final sport = data['sport'] ?? 'Unknown';
-                      final court = data['court'] ?? 'N/A';
-                      final status = data['status'] ?? 'Pending';
-
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 16),
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Colors.grey,
-                              spreadRadius: 2,
-                              blurRadius: 5,
-                              offset: Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('$sport Court',
-                                style: const TextStyle(
-                                    fontSize: 18, fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Facility: $court',
-                              style: TextStyle(
-                                  fontSize: 16, color: Colors.grey[600]),
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                const Icon(Icons.calendar_today,
-                                    size: 18, color: Colors.grey),
-                                const SizedBox(width: 8),
-                                Text(
-                                  DateFormat('d MMM yyyy, hh:mm a')
-                                      .format(bookingDate),
-                                  style: TextStyle(color: Colors.grey[700]),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 6),
-                                  decoration: BoxDecoration(
-                                    color: Colors.green[50],
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Text(
-                                    status,
-                                    style: TextStyle(
-                                      color: Colors.green[800],
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                                Row(
+                            return Card(
+                              margin: const EdgeInsets.only(bottom: 16),
+                              child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    if (data['userId'] == userId &&
-                                        status == 'Upcoming')
-                                      TextButton.icon(
-                                        onPressed: () async {
-                                          final confirm =
-                                              await showDialog<bool>(
-                                            context: context,
-                                            builder: (context) => AlertDialog(
-                                              title: const Text(
-                                                  'Confirm Check-In'),
-                                              content: const Text(
-                                                  'Are you sure you want to check in for this booking?'),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: () =>
-                                                      Navigator.pop(
-                                                          context, false),
-                                                  child: const Text('Cancel'),
-                                                ),
-                                                ElevatedButton(
-                                                  onPressed: () =>
-                                                      Navigator.pop(
-                                                          context, true),
-                                                  child: const Text('Check-In'),
-                                                ),
-                                              ],
-                                            ),
-                                          );
-                                          if (confirm == true) {
-                                            await _checkInBooking(booking.id);
-                                          }
-                                        },
-                                        icon: const Icon(Icons.login),
-                                        label: const Text('Check In'),
-                                      ),
-                                    IconButton(
-                                      icon: const Icon(Icons.more_vert),
-                                      onPressed: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                ReservationDetailsPage(
-                                                    booking: data),
-                                          ),
-                                        );
-                                      },
+                                    Text(eventName,
+                                        style: const TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold)),
+                                    const SizedBox(height: 8),
+                                    Text('Sport: $sport'),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                        'Date: ${DateFormat('d MMM yyyy').format(eventDate)}'),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                        'Participants: ${registered.length}/$maxParticipants'),
+                                    const SizedBox(height: 12),
+                                    ElevatedButton(
+                                      onPressed: alreadyRegistered
+                                          ? null
+                                          : () => _registerForEvent(eventId),
+                                      child: Text(alreadyRegistered
+                                          ? 'Registered'
+                                          : 'Register'),
                                     ),
                                   ],
                                 ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    )
+                  : StreamBuilder<QuerySnapshot>(
+                      stream: FirebaseFirestore.instance
+                          .collection('bookings')
+                          .orderBy('date', descending: true)
+                          .snapshots(),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasError) {
+                          return const Center(
+                              child: Text('Error loading bookings'));
+                        }
+
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        }
+
+                        final allDocs = snapshot.data!.docs;
+                        final now = DateTime.now();
+
+                        final filteredDocs = allDocs.where((doc) {
+                          final data = doc.data() as Map<String, dynamic>;
+                          final bookingDate = data['date'] is Timestamp
+                              ? (data['date'] as Timestamp).toDate()
+                              : DateTime.now();
+
+                          final status = data['status'] ?? '';
+
+                          // 0 = My Reservation Record, 1 = Past Reservation
+                          if (selectedTabIndex == 0) {
+                            return data['userId'] == userId &&
+                                status != 'Checked-In' &&
+                                bookingDate.isAfter(now);
+                          }
+
+                          if (selectedTabIndex == 1) {
+                            return data['userId'] == userId &&
+                                (status == 'Checked-In' ||
+                                    bookingDate.isBefore(now));
+                          }
+
+                          return false;
+                        }).toList();
+
+                        return ListView.builder(
+                          itemCount: filteredDocs.length,
+                          itemBuilder: (context, index) {
+                            final booking = filteredDocs[index];
+                            final data = booking.data() as Map<String, dynamic>;
+
+                            DateTime bookingDate;
+                            if (data['date'] is Timestamp) {
+                              bookingDate =
+                                  (data['date'] as Timestamp).toDate();
+                            } else if (data['date'] is String) {
+                              bookingDate = DateTime.tryParse(data['date']) ??
+                                  DateTime.now();
+                            } else {
+                              bookingDate = DateTime.now();
+                            }
+
+                            final sport = data['sport'] ?? 'Unknown';
+                            final court = data['court'] ?? 'N/A';
+                            final status = data['status'] ?? 'Pending';
+
+                            return Container(
+                              margin: const EdgeInsets.only(bottom: 16),
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Colors.grey,
+                                    spreadRadius: 2,
+                                    blurRadius: 5,
+                                    offset: Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('$sport Court',
+                                      style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold)),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Facility: $court',
+                                    style: TextStyle(
+                                        fontSize: 16, color: Colors.grey[600]),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.calendar_today,
+                                          size: 18, color: Colors.grey),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        DateFormat('d MMM yyyy, hh:mm a')
+                                            .format(bookingDate),
+                                        style:
+                                            TextStyle(color: Colors.grey[700]),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 12, vertical: 6),
+                                        decoration: BoxDecoration(
+                                          color: Colors.green[50],
+                                          borderRadius:
+                                              BorderRadius.circular(20),
+                                        ),
+                                        child: Text(
+                                          status,
+                                          style: TextStyle(
+                                            color: Colors.green[800],
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                      Row(
+                                        children: [
+                                          if (data['userId'] == userId &&
+                                              status == 'Upcoming')
+                                            TextButton.icon(
+                                              onPressed: () async {
+                                                final confirm =
+                                                    await showDialog<bool>(
+                                                  context: context,
+                                                  builder: (context) =>
+                                                      AlertDialog(
+                                                    title: const Text(
+                                                        'Confirm Check-In'),
+                                                    content: const Text(
+                                                        'Are you sure you want to check in for this booking?'),
+                                                    actions: [
+                                                      TextButton(
+                                                        onPressed: () =>
+                                                            Navigator.pop(
+                                                                context, false),
+                                                        child: const Text(
+                                                            'Cancel'),
+                                                      ),
+                                                      ElevatedButton(
+                                                        onPressed: () =>
+                                                            Navigator.pop(
+                                                                context, true),
+                                                        child: const Text(
+                                                            'Check-In'),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                );
+                                                if (confirm == true) {
+                                                  await _checkInBooking(
+                                                      booking.id);
+                                                }
+                                              },
+                                              icon: const Icon(Icons.login),
+                                              label: const Text('Check In'),
+                                            ),
+                                          IconButton(
+                                            icon: const Icon(Icons.more_vert),
+                                            onPressed: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      ReservationDetailsPage(
+                                                          booking: data),
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
             ),
           ],
         ),
