@@ -3,7 +3,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'user_account_management.dart';
-import 'analytic_dashboard.dart';
 import '../booking_management.dart';
 import '../user_auth/login_page.dart';
 import '../edit_profile_page.dart';
@@ -25,7 +24,6 @@ class MyApp extends StatelessWidget {
       routes: {
         '/page1': (context) => const BookingManagementPage(),
         '/page2': (context) => const UserAccountManagementPage(),
-        '/page3': (context) => const AnalyticDashboardPage(),
         '/edit_profile': (context) => const EditProfilePage(),
         '/login': (context) => const LoginPage(),
       },
@@ -482,17 +480,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     icon: Icons.person,
                   ),
                 ],
-              ),
-              const SizedBox(height: 16),
-              Center(
-                child: _buildRectangleButton(
-                  context,
-                  'Analytic Dashboard',
-                  Color(0xFF870C14),
-                  '/page3',
-                  width: 200,
-                  icon: Icons.analytics,
-                ),
               ),
               const SizedBox(height: 32),
 
