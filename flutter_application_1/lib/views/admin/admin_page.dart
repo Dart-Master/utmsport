@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'user_account_management.dart';
 import 'analytic_dashboard.dart';
 import '../booking_management.dart';
@@ -30,8 +32,81 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class AdminDashboard extends StatelessWidget {
+class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
+
+  @override
+  State<AdminDashboard> createState() => _AdminDashboardState();
+}
+
+class _AdminDashboardState extends State<AdminDashboard> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  
+  String userName = 'Loading...';
+  String userEmail = 'Loading...';
+  String userImageUrl = '';
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserProfile();
+  }
+
+  // Load user profile from Firebase
+  Future<void> _loadUserProfile() async {
+    try {
+      User? user = _auth.currentUser;
+      if (user != null) {
+        // Try to get data from Firestore first
+        DocumentSnapshot userDoc = await _firestore
+            .collection('users')
+            .doc(user.uid)
+            .get();
+        
+        if (userDoc.exists) {
+          Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
+          setState(() {
+            userName = userData['name'] ?? user.displayName ?? 'Admin';
+            userEmail = userData['email'] ?? user.email ?? 'admin@example.com';
+            userImageUrl = userData['profileImageUrl'] ?? user.photoURL ?? '';
+            isLoading = false;
+          });
+        } else {
+          // If no Firestore document, use Firebase Auth data
+          setState(() {
+            userName = user.displayName ?? 'Admin';
+            userEmail = user.email ?? 'admin@example.com';
+            userImageUrl = user.photoURL ?? '';
+            isLoading = false;
+          });
+        }
+      } else {
+        setState(() {
+          userName = 'Admin';
+          userEmail = 'admin@example.com';
+          userImageUrl = '';
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      print('Error loading user profile: $e');
+      setState(() {
+        userName = 'Admin';
+        userEmail = 'admin@example.com';
+        userImageUrl = '';
+        isLoading = false;
+      });
+    }
+  }
+
+  // Navigate to edit profile and refresh data when coming back
+  Future<void> _navigateToEditProfile() async {
+    final result = await Navigator.pushNamed(context, '/edit_profile');
+    // Refresh profile data when coming back from edit profile
+    _loadUserProfile();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -94,20 +169,31 @@ class AdminDashboard extends StatelessWidget {
                         ],
                       ),
                       child: ClipOval(
-                        child: Image.network(
-                          'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              color: Colors.grey[300],
-                              child: const Icon(
-                                Icons.person,
-                                size: 40,
-                                color: Colors.grey,
-                              ),
-                            );
-                          },
-                        ),
+                        child: isLoading
+                            ? const CircularProgressIndicator()
+                            : (userImageUrl.isNotEmpty
+                                ? Image.network(
+                                    userImageUrl,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        color: Colors.grey[300],
+                                        child: const Icon(
+                                          Icons.person,
+                                          size: 40,
+                                          color: Colors.grey,
+                                        ),
+                                      );
+                                    },
+                                  )
+                                : Container(
+                                    color: Colors.grey[300],
+                                    child: const Icon(
+                                      Icons.person,
+                                      size: 40,
+                                      color: Colors.grey,
+                                    ),
+                                  )),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -116,9 +202,9 @@ class AdminDashboard extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'John Doe',
-                            style: TextStyle(
+                          Text(
+                            userName,
+                            style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
                               color: Colors.black87,
@@ -126,7 +212,7 @@ class AdminDashboard extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'admin@example.com',
+                            userEmail,
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.grey[600],
@@ -156,9 +242,7 @@ class AdminDashboard extends StatelessWidget {
                     ),
                     // Edit Profile Button
                     GestureDetector(
-                      onTap: () {
-                        Navigator.pushNamed(context, '/edit_profile');
-                      },
+                      onTap: _navigateToEditProfile,
                       child: Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
@@ -186,9 +270,9 @@ class AdminDashboard extends StatelessWidget {
               const SizedBox(height: 24),
 
               // Welcome Message
-              const Text(
-                'Welcome back, admin',
-                style: TextStyle(
+              Text(
+                'Welcome back, ${userName.split(' ').first}',
+                style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                 ),
