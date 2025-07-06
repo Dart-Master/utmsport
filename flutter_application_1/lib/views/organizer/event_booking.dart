@@ -191,241 +191,263 @@ class _EventBookingPageState extends State<EventBookingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        title: const Text('Create Event'),
+        title: Text(widget.isEdit ? 'Edit Event' : 'Create Event',
+            style: const TextStyle(
+                color: Colors.black, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.white,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
+        centerTitle: true,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (userEmail != null)
-                  Text(
-                    'Logged in as: $userEmail',
-                    style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                const SizedBox(height: 20),
-
-                // Event Name
-                TextFormField(
-                  controller: _eventNameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Event Name *',
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) => value == null || value.isEmpty
-                      ? 'Please enter event name'
-                      : null,
-                ),
-                const SizedBox(height: 16),
-
-                // Description
-                TextFormField(
-                  controller: _descriptionController,
-                  maxLines: 3,
-                  decoration: const InputDecoration(
-                    labelText: 'Event Description',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Sport Selection
-                const Text('Select Sport:', style: TextStyle(fontSize: 18)),
-                const SizedBox(height: 10),
-                ValueListenableBuilder<String>(
-                  valueListenable: viewModel.selectedSport,
-                  builder: (context, sport, _) {
-                    return DropdownButtonFormField<String>(
-                      value: sport,
-                      items: viewModel.sports.map((sport) {
-                        return DropdownMenuItem<String>(
-                          value: sport,
-                          child: Text(sport),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        viewModel.selectedSport.value = value!;
-                        viewModel.selectedTimeSlots.value = [];
-                        viewModel.selectedCourts.value = [];
-                      },
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        contentPadding:
-                            EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 20),
-
-                // Date Selection
-                const Text('Select a date:', style: TextStyle(fontSize: 18)),
-                const SizedBox(height: 10),
-                ValueListenableBuilder<DateTime>(
-                  valueListenable: viewModel.selectedDate,
-                  builder: (context, selectedDate, _) {
-                    return InkWell(
-                      onTap: () async {
-                        final picked = await showDatePicker(
-                          context: context,
-                          initialDate: selectedDate,
-                          firstDate: DateTime.now(),
-                          lastDate:
-                              DateTime.now().add(const Duration(days: 365)),
-                        );
-                        if (picked != null) {
-                          viewModel.selectedDate.value = picked;
-                        }
-                      },
-                      child: InputDecorator(
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: 'Event Date *',
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    margin: const EdgeInsets.only(bottom: 18),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: Colors.grey[200]!),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.person, color: Color(0xFF870C14)),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            userEmail!,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 15,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                        child:
-                            Text(DateFormat('d MMM yyyy').format(selectedDate)),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 20),
-
-                // Time Slots Selection (multi-select)
-                const Text('Select Time Slots:',
-                    style: TextStyle(fontSize: 18)),
-                const SizedBox(height: 10),
-                ValueListenableBuilder<String>(
-                  valueListenable: viewModel.selectedSport,
-                  builder: (context, sport, _) {
-                    final slots = viewModel.getTimeSlotsForSelectedSport();
-                    return ValueListenableBuilder<List<String>>(
-                      valueListenable: viewModel.selectedTimeSlots,
-                      builder: (context, selectedSlots, _) {
-                        return Wrap(
-                          spacing: 8,
-                          children: slots.map((slot) {
-                            final isSelected = selectedSlots.contains(slot);
-                            return FilterChip(
-                              label: Text(slot),
-                              selected: isSelected,
-                              onSelected: (selected) {
-                                final updated =
-                                    List<String>.from(selectedSlots);
-                                if (selected) {
-                                  updated.add(slot);
-                                } else {
-                                  updated.remove(slot);
-                                }
-                                viewModel.selectedTimeSlots.value = updated;
-                              },
-                            );
-                          }).toList(),
-                        );
-                      },
-                    );
-                  },
-                ),
-                const SizedBox(height: 20),
-
-                // Court Selection (multi-select)
-                const Text('Select Courts:', style: TextStyle(fontSize: 18)),
-                const SizedBox(height: 10),
-                ValueListenableBuilder<String>(
-                  valueListenable: viewModel.selectedSport,
-                  builder: (context, sport, _) {
-                    final courts = viewModel.getCourtsForSelectedSport();
-                    return ValueListenableBuilder<List<int>>(
-                      valueListenable: viewModel.selectedCourts,
-                      builder: (context, selectedCourts, _) {
-                        return Wrap(
-                          spacing: 8,
-                          children: courts.map((court) {
-                            final isSelected = selectedCourts.contains(court);
-                            return FilterChip(
-                              label: Text('Court $court'),
-                              selected: isSelected,
-                              onSelected: (selected) {
-                                final updated = List<int>.from(selectedCourts);
-                                if (selected) {
-                                  updated.add(court);
-                                } else {
-                                  updated.remove(court);
-                                }
-                                viewModel.selectedCourts.value = updated;
-                              },
-                            );
-                          }).toList(),
-                        );
-                      },
-                    );
-                  },
-                ),
-                const SizedBox(height: 20),
-
-                // Max Participants
-                TextFormField(
-                  controller: _maxParticipantsController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Maximum Participants *',
-                    border: OutlineInputBorder(),
+                      ],
+                    ),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter maximum participants';
-                    }
-                    if (int.tryParse(value) == null || int.parse(value) <= 0) {
-                      return 'Please enter a valid number';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Registration Fee
-                TextFormField(
-                  controller: _registrationFeeController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Registration Fee (RM)',
-                    border: OutlineInputBorder(),
-                    hintText: '0.00',
+                _MinimalSection(
+                  label: 'Event Name *',
+                  child: TextFormField(
+                    controller: _eventNameController,
+                    decoration: _minimalInputDecoration('Event Name'),
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Please enter event name'
+                        : null,
                   ),
-                  validator: (value) {
-                    if (value != null && value.isNotEmpty) {
-                      if (double.tryParse(value) == null) {
-                        return 'Please enter a valid amount';
+                ),
+                const SizedBox(height: 14),
+                _MinimalSection(
+                  label: 'Event Description',
+                  child: TextFormField(
+                    controller: _descriptionController,
+                    maxLines: 3,
+                    decoration: _minimalInputDecoration('Event Description'),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                _MinimalSection(
+                  label: 'Select Sport',
+                  child: ValueListenableBuilder<String>(
+                    valueListenable: viewModel.selectedSport,
+                    builder: (context, sport, _) {
+                      return DropdownButtonFormField<String>(
+                        value: sport,
+                        items: viewModel.sports.map((sport) {
+                          return DropdownMenuItem<String>(
+                            value: sport,
+                            child: Text(sport),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          viewModel.selectedSport.value = value!;
+                          viewModel.selectedTimeSlots.value = [];
+                          viewModel.selectedCourts.value = [];
+                        },
+                        decoration: _minimalInputDecoration('Sport'),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 14),
+                _MinimalSection(
+                  label: 'Event Date *',
+                  child: ValueListenableBuilder<DateTime>(
+                    valueListenable: viewModel.selectedDate,
+                    builder: (context, selectedDate, _) {
+                      return InkWell(
+                        onTap: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: selectedDate,
+                            firstDate: DateTime.now(),
+                            lastDate:
+                                DateTime.now().add(const Duration(days: 365)),
+                          );
+                          if (picked != null) {
+                            viewModel.selectedDate.value = picked;
+                          }
+                        },
+                        child: InputDecorator(
+                          decoration: _minimalInputDecoration('Event Date'),
+                          child: Text(
+                              DateFormat('d MMM yyyy').format(selectedDate)),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 14),
+                _MinimalSection(
+                  label: 'Time Slots',
+                  child: ValueListenableBuilder<String>(
+                    valueListenable: viewModel.selectedSport,
+                    builder: (context, sport, _) {
+                      final slots = viewModel.getTimeSlotsForSelectedSport();
+                      return ValueListenableBuilder<List<String>>(
+                        valueListenable: viewModel.selectedTimeSlots,
+                        builder: (context, selectedSlots, _) {
+                          return Wrap(
+                            spacing: 8,
+                            children: slots.map((slot) {
+                              final isSelected = selectedSlots.contains(slot);
+                              return FilterChip(
+                                label: Text(slot),
+                                selected: isSelected,
+                                selectedColor:
+                                    const Color(0xFF870C14).withOpacity(0.12),
+                                checkmarkColor: const Color(0xFF870C14),
+                                onSelected: (selected) {
+                                  final updated =
+                                      List<String>.from(selectedSlots);
+                                  if (selected) {
+                                    updated.add(slot);
+                                  } else {
+                                    updated.remove(slot);
+                                  }
+                                  viewModel.selectedTimeSlots.value = updated;
+                                },
+                              );
+                            }).toList(),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 14),
+                _MinimalSection(
+                  label: 'Courts',
+                  child: ValueListenableBuilder<String>(
+                    valueListenable: viewModel.selectedSport,
+                    builder: (context, sport, _) {
+                      final courts = viewModel.getCourtsForSelectedSport();
+                      return ValueListenableBuilder<List<int>>(
+                        valueListenable: viewModel.selectedCourts,
+                        builder: (context, selectedCourts, _) {
+                          return Wrap(
+                            spacing: 8,
+                            children: courts.map((court) {
+                              final isSelected = selectedCourts.contains(court);
+                              return FilterChip(
+                                label: Text('Court $court'),
+                                selected: isSelected,
+                                selectedColor:
+                                    const Color(0xFF870C14).withOpacity(0.12),
+                                checkmarkColor: const Color(0xFF870C14),
+                                onSelected: (selected) {
+                                  final updated =
+                                      List<int>.from(selectedCourts);
+                                  if (selected) {
+                                    updated.add(court);
+                                  } else {
+                                    updated.remove(court);
+                                  }
+                                  viewModel.selectedCourts.value = updated;
+                                },
+                              );
+                            }).toList(),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 14),
+                _MinimalSection(
+                  label: 'Maximum Participants *',
+                  child: TextFormField(
+                    controller: _maxParticipantsController,
+                    keyboardType: TextInputType.number,
+                    decoration: _minimalInputDecoration('Maximum Participants'),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter maximum participants';
                       }
-                    }
-                    return null;
-                  },
+                      if (int.tryParse(value) == null ||
+                          int.parse(value) <= 0) {
+                        return 'Please enter a valid number';
+                      }
+                      return null;
+                    },
+                  ),
                 ),
-                const SizedBox(height: 30),
-
-                // Create Event Button
+                const SizedBox(height: 14),
+                _MinimalSection(
+                  label: 'Registration Fee (RM)',
+                  child: TextFormField(
+                    controller: _registrationFeeController,
+                    keyboardType: TextInputType.number,
+                    decoration: _minimalInputDecoration('0.00'),
+                    validator: (value) {
+                      if (value != null && value.isNotEmpty) {
+                        if (double.tryParse(value) == null) {
+                          return 'Please enter a valid amount';
+                        }
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+                const SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,
-                  height: 50,
+                  height: 48,
                   child: ElevatedButton(
                     onPressed: _isBooking ? null : _createEvent,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF870C14),
                       foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                     child: _isBooking
-                        ? const CircularProgressIndicator()
-                        : const Text(
-                            'Create Event',
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold),
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                        : Text(
+                            widget.isEdit ? 'Update Event' : 'Create Event',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                   ),
                 ),
@@ -436,4 +458,52 @@ class _EventBookingPageState extends State<EventBookingPage> {
       ),
     );
   }
+}
+
+// Minimal section card for each field group
+class _MinimalSection extends StatelessWidget {
+  final String label;
+  final Widget child;
+  const _MinimalSection({required this.label, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 15,
+            color: Color(0xFF870C14),
+          ),
+        ),
+        const SizedBox(height: 6),
+        child,
+      ],
+    );
+  }
+}
+
+// Minimal input decoration
+InputDecoration _minimalInputDecoration(String hint) {
+  return InputDecoration(
+    hintText: hint,
+    filled: true,
+    fillColor: Colors.white,
+    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(10),
+      borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(10),
+      borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(10),
+      borderSide: const BorderSide(color: Color(0xFF870C14), width: 1.5),
+    ),
+  );
 }

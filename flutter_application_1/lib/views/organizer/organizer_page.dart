@@ -39,39 +39,36 @@ class _OrganizerPageState extends State<OrganizerPage> {
 
   Widget _buildTabButton(int index, String label) {
     final bool isSelected = selectedTabIndex == index;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 1.0),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        curve: Curves.easeInOut,
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF870C14) : Colors.grey[100],
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: isSelected ? const Color(0xFF870C14) : Colors.grey[300]!,
-            width: 1,
-          ),
-        ),
-        child: TextButton(
-          onPressed: () {
-            setState(() {
-              selectedTabIndex = index;
-            });
-          },
-          style: TextButton.styleFrom(
-            foregroundColor: isSelected ? Colors.white : Colors.grey[800],
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            textStyle: TextStyle(
+    return TextButton(
+      onPressed: () {
+        setState(() {
+          selectedTabIndex = index;
+        });
+      },
+      style: TextButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+        minimumSize: Size(0, 36),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: isSelected ? const Color(0xFF870C14) : Colors.grey[600],
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               fontSize: 15,
-              letterSpacing: 0.1,
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
             ),
           ),
-          child: Text(label),
-        ),
+          if (isSelected)
+            Container(
+              margin: const EdgeInsets.only(top: 2),
+              height: 2,
+              width: 24,
+              color: const Color(0xFF870C14),
+            ),
+        ],
       ),
     );
   }
@@ -98,7 +95,7 @@ class _OrganizerPageState extends State<OrganizerPage> {
 
   Widget _buildEventCard(DocumentSnapshot event) {
     final data = event.data() as Map<String, dynamic>;
-    data['id'] = event.id; // Add event ID to data
+    data['id'] = event.id;
 
     DateTime eventDate;
     if (data['date'] is Timestamp) {
@@ -112,39 +109,14 @@ class _OrganizerPageState extends State<OrganizerPage> {
     final eventName = data['eventName'] ?? 'Unknown Event';
     final sport = data['sport'] ?? 'Unknown';
     final status = data['status'] ?? 'Draft';
-    final courts = data['courts'] as List<dynamic>? ?? [];
-    final maxParticipants = data['maxParticipants'] ?? 0;
-    final registeredCount = data['registeredParticipants']?.length ?? 0;
-
-    Color statusColor;
-    Color statusBgColor;
-
-    switch (status) {
-      case 'Published':
-        statusColor = Colors.green[800]!;
-        statusBgColor = Colors.green[50]!;
-        break;
-      case 'Cancelled':
-        statusColor = Colors.red[800]!;
-        statusBgColor = Colors.red[50]!;
-        break;
-      case 'Completed':
-        statusColor = Colors.blue[800]!;
-        statusBgColor = Colors.blue[50]!;
-        break;
-      default:
-        statusColor = Colors.orange[800]!;
-        statusBgColor = Colors.orange[50]!;
-    }
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(18),
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.grey[200]!, width: 1.2),
-        // Removed boxShadow for minimalism
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[200]!, width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -155,101 +127,62 @@ class _OrganizerPageState extends State<OrganizerPage> {
                 child: Text(
                   eventName,
                   style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.2,
-                  ),
+                      fontSize: 16, fontWeight: FontWeight.bold),
                   overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
                 ),
               ),
               Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: statusBgColor,
-                  borderRadius: BorderRadius.circular(20),
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(16),
                 ),
                 child: Text(
                   status,
                   style: TextStyle(
-                    color: statusColor,
+                    color: status == 'Published'
+                        ? Colors.green[700]
+                        : status == 'Cancelled'
+                            ? Colors.red[700]
+                            : Colors.grey[700],
                     fontWeight: FontWeight.w500,
                     fontSize: 12,
-                    letterSpacing: 0.5,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 6),
           Text(
             'Sport: $sport',
-            style: TextStyle(fontSize: 15, color: Colors.grey[700]),
+            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
           ),
-          const SizedBox(height: 2),
-          Text(
-            'Courts: ${courts.length} booked',
-            style: TextStyle(fontSize: 14, color: Colors.grey[500]),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            'Participants: $registeredCount/$maxParticipants',
-            style: TextStyle(fontSize: 14, color: Colors.grey[500]),
-          ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 4),
           Row(
             children: [
-              const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
+              const Icon(Icons.calendar_today, size: 15, color: Colors.grey),
               const SizedBox(width: 6),
               Text(
                 DateFormat('d MMM yyyy, hh:mm a').format(eventDate),
-                style: TextStyle(color: Colors.grey[700], fontSize: 14),
+                style: TextStyle(color: Colors.grey[700], fontSize: 13),
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              if (status == 'Draft')
-                TextButton.icon(
-                  onPressed: () => _showPublishDialog(event.id),
-                  icon: const Icon(Icons.publish, size: 16),
-                  label: const Text('Publish'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.green[700],
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          const SizedBox(height: 4),
+          Align(
+            alignment: Alignment.centerRight,
+            child: IconButton(
+              icon: const Icon(Icons.more_vert, size: 20),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EventDetailsPage(event: data),
                   ),
-                ),
-              if (status == 'Published')
-                TextButton.icon(
-                  onPressed: () => _showCancelDialog(event.id),
-                  icon: const Icon(Icons.cancel, size: 16),
-                  label: const Text('Cancel'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.red[700],
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                ),
-              const SizedBox(width: 8),
-              IconButton(
-                icon: const Icon(Icons.more_vert),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => EventDetailsPage(event: data),
-                    ),
-                  );
-                },
-                splashRadius: 20,
-              ),
-            ],
+                );
+              },
+            ),
           ),
         ],
       ),
