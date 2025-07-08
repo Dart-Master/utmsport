@@ -172,16 +172,33 @@ class _OrganizerPageState extends State<OrganizerPage> {
           const SizedBox(height: 4),
           Align(
             alignment: Alignment.centerRight,
-            child: IconButton(
-              icon: const Icon(Icons.more_vert, size: 20),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => EventDetailsPage(event: data),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (status == 'Draft')
+                  TextButton.icon(
+                    icon: const Icon(Icons.publish, size: 16),
+                    label: const Text('Publish'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.green[700],
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    onPressed: () => _showPublishDialog(data['id']),
                   ),
-                );
-              },
+                IconButton(
+                  icon: const Icon(Icons.more_vert, size: 20),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EventDetailsPage(event: data),
+                      ),
+                    );
+                  },
+                ),
+              ],
             ),
           ),
         ],
